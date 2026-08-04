@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Map base - blue shadow -->
+  <polygon points="8,42 32,56 56,42 32,28" fill="#BBDEFB"/>
+  <!-- Map left panel - green -->
+  <polygon points="8,42 20,35 20,49 8,56" fill="#43A047"/>
+  <!-- Map right panel - lighter green -->
+  <polygon points="20,35 44,35 44,49 20,49" fill="#66BB6A"/>
+  <!-- Map far right panel - blue tint -->
+  <polygon points="44,35 56,42 56,56 44,49" fill="#42A5F5"/>
+  <!-- Road / yellow stripe -->
+  <polygon points="18,44 26,40 26,52 18,56" fill="#FDD835"/>
+  <polygon points="26,40 36,40 36,52 26,52" fill="#FFEE58"/>
+  <!-- Pin shadow -->
+  <ellipse cx="32" cy="40" rx="5" ry="2.5" fill="rgba(0,0,0,0.18)"/>
+  <!-- Pin body left half -->
+  <path d="M32 8 C22 8 15 16 15 24 C15 35 32 46 32 46 C32 46 49 35 49 24 C49 16 42 8 32 8 Z" fill="#E53935"/>
+  <!-- Pin body right half (darker) -->
+  <path d="M32 8 C42 8 49 16 49 24 C49 35 32 46 32 46 L32 8 Z" fill="#B71C1C"/>
+  <!-- Pin inner circle -->
+  <circle cx="32" cy="24" r="6" fill="white"/>
+</svg>

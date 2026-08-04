@@ -1,0 +1,19 @@
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+sqlalchemy==2.0.36
+# psycopg3 (psycopg[binary]) has pre-built wheels for Python 3.14;
+# psycopg2-binary does not. Use the compatibility shim if needed.
+psycopg[binary]==3.3.4
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.3
+python-multipart==0.0.9
+slowapi==0.1.9
+httpx==0.26.0
+python-dotenv==1.0.1
+aiofiles==23.2.1
+email-validator==2.1.0.post1
+pydantic-settings==2.2.1
+pytest==8.0.2
+pytest-asyncio==0.23.5
+hypothesis==6.98.15
