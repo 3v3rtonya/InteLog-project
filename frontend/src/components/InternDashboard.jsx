@@ -6,6 +6,7 @@ import StatusBadge from './StatusBadge'
 import AttachmentDateModal from './AttachmentDateModal'
 import AttendanceCalendar from './AttendanceCalendar'
 import AbsenceRequestForm from './AbsenceRequestForm'
+import { AlertTriangle, BookOpen, Palmtree, Lock, Calendar, ClipboardList, CheckCircle, Hourglass, FileEdit } from 'lucide-react'
 
 export default function InternDashboard() {
   const { user } = useAuth()
@@ -77,8 +78,8 @@ export default function InternDashboard() {
         <div>
           <h1 className="page-title">Welcome, {user?.full_name?.split(' ')[0]} 👋</h1>
           <p className="page-subtitle">
-            {isExpired ? '⚠️ Attachment period ended — read-only view' :
-             isReadOnly ? '📖 Read-only mode (3-day window after attachment end)' :
+            {isExpired ? <><AlertTriangle size={16} style={{ verticalAlign: 'text-bottom' }} /> Attachment period ended — read-only view</> :
+             isReadOnly ? <><BookOpen size={16} style={{ verticalAlign: 'text-bottom' }} /> Read-only mode (3-day window after attachment end)</> :
              'Your logbook & attendance overview'}
           </p>
         </div>
@@ -88,7 +89,7 @@ export default function InternDashboard() {
               className="btn btn-secondary btn-sm"
               onClick={() => setShowAbsenceForm(true)}
             >
-              🏖️ Report Absence
+              <Palmtree size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} /> Report Absence
             </button>
           )}
           {!isReadOnly && !isExpired && (
@@ -105,7 +106,7 @@ export default function InternDashboard() {
           background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: 'var(--radius)',
           padding: '12px 16px', marginBottom: 16, fontSize: '0.875rem', color: '#991B1B',
         }}>
-          🔒 Your attachment period ended on <strong>{periodStatus?.attachment_end}</strong>.
+          <Lock size={16} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} /> Your attachment period ended on <strong>{periodStatus?.attachment_end}</strong>.
           Your logbook is now read-only. Contact your supervisor or university coordinator if you need to extend your period.
         </div>
       )}
@@ -116,7 +117,7 @@ export default function InternDashboard() {
           background: '#FEF9C3', border: '1px solid #FDE047', borderRadius: 'var(--radius)',
           padding: '12px 16px', marginBottom: 16, fontSize: '0.875rem', color: '#713F12',
         }}>
-          📖 Your attachment ended on <strong>{periodStatus?.attachment_end}</strong>.
+          <BookOpen size={16} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} /> Your attachment ended on <strong>{periodStatus?.attachment_end}</strong>.
           You have a 3-day window to view your records but cannot submit new entries.
         </div>
       )}
@@ -129,7 +130,7 @@ export default function InternDashboard() {
           padding: '6px 14px', fontSize: '0.8rem', marginBottom: 16,
           color: 'var(--text-secondary)',
         }}>
-          📅 Attachment: <strong>{periodStatus.attachment_start}</strong> → <strong>{periodStatus.attachment_end}</strong>
+          <Calendar size={14} style={{ marginRight: 2 }} /> Attachment: <strong>{periodStatus.attachment_start}</strong> → <strong>{periodStatus.attachment_end}</strong>
           {!isReadOnly && periodStatus.changes_remaining > 0 && (
             <button
               className="btn btn-outline"
@@ -145,22 +146,22 @@ export default function InternDashboard() {
       {/* ── Stats grid ──────────────────────────────────────────── */}
       <div className="stats-grid">
         <div className="stat-card blue">
-          <div className="stat-card-icon">📋</div>
+          <div className="stat-card-icon"><ClipboardList size={28} /></div>
           <div className="stat-card-label">Total Logs</div>
           <div className="stat-card-value">{stats.total}</div>
         </div>
         <div className="stat-card green">
-          <div className="stat-card-icon">✅</div>
+          <div className="stat-card-icon"><CheckCircle size={28} /></div>
           <div className="stat-card-label">Approved</div>
           <div className="stat-card-value">{stats.approved}</div>
         </div>
         <div className="stat-card yellow">
-          <div className="stat-card-icon">⏳</div>
+          <div className="stat-card-icon"><Hourglass size={28} /></div>
           <div className="stat-card-label">Pending</div>
           <div className="stat-card-value">{stats.pending}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-icon">📝</div>
+          <div className="stat-card-icon"><FileEdit size={28} /></div>
           <div className="stat-card-label">Drafts</div>
           <div className="stat-card-value">{stats.draft}</div>
         </div>
@@ -194,7 +195,7 @@ export default function InternDashboard() {
           <div className="spinner-center"><div className="spinner spinner-md" /></div>
         ) : recent.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">📖</div>
+            <div className="empty-state-icon"><BookOpen size={48} color="var(--brand-green)" /></div>
             <div className="empty-state-title">No log entries yet</div>
             {!isReadOnly && !isExpired && (
               <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => navigate('/intern/logs/new')}>
@@ -213,7 +214,7 @@ export default function InternDashboard() {
                   <tr key={log.id}>
                     <td>{log.entry_date}</td>
                     <td><StatusBadge status={log.status} /></td>
-                    <td>{log.is_flagged ? '⚠️ Flagged' : '—'}</td>
+                    <td>{log.is_flagged ? <><AlertTriangle size={14} color="#F59E0B" style={{ verticalAlign: 'middle', marginRight: 4 }} /> Flagged</> : '—'}</td>
                     <td>
                       <button
                         className="btn btn-secondary btn-sm"

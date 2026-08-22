@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiGetPendingRequests, apiGetUsers, apiGetFlaggedLogs, apiGetLecturers } from '../services/api'
 import StatusBadge from './StatusBadge'
+import { Inbox, Hourglass, GraduationCap, Briefcase, School, AlertTriangle } from 'lucide-react'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
@@ -41,32 +42,32 @@ export default function AdminDashboard() {
 
       <div className="stats-grid">
         <div className="stat-card blue" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/preregister')}>
-          <div className="stat-card-icon">📥</div>
+          <div className="stat-card-icon"><Inbox size={28} /></div>
           <div className="stat-card-label">Pre-Register</div>
           <div className="stat-card-value" style={{ fontSize: '0.9rem' }}>Import</div>
         </div>
         <div className="stat-card yellow" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/pending')}>
-          <div className="stat-card-icon">⏳</div>
+          <div className="stat-card-icon"><Hourglass size={28} /></div>
           <div className="stat-card-label">Unassigned Queue</div>
           <div className="stat-card-value">{stats.pending}</div>
         </div>
         <div className="stat-card green" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/users')}>
-          <div className="stat-card-icon">🎓</div>
+          <div className="stat-card-icon"><GraduationCap size={28} /></div>
           <div className="stat-card-label">Active Interns</div>
           <div className="stat-card-value">{stats.interns}</div>
         </div>
         <div className="stat-card blue" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/users')}>
-          <div className="stat-card-icon">👔</div>
+          <div className="stat-card-icon"><Briefcase size={28} /></div>
           <div className="stat-card-label">Supervisors</div>
           <div className="stat-card-value">{stats.supervisors}</div>
         </div>
         <div className="stat-card purple" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/users')}>
-          <div className="stat-card-icon">🏫</div>
+          <div className="stat-card-icon"><School size={28} /></div>
           <div className="stat-card-label">Lecturers</div>
           <div className="stat-card-value">{stats.lecturers}</div>
         </div>
         <div className="stat-card red" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/flagged')}>
-          <div className="stat-card-icon">⚠️</div>
+          <div className="stat-card-icon"><AlertTriangle size={28} /></div>
           <div className="stat-card-label">Unassigned Flagged</div>
           <div className="stat-card-value">{stats.flagged}</div>
         </div>

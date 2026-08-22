@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../App'
 import { apiSignupIntern, apiSignupSupervisor, apiLogin } from '../services/api'
 import { useToast } from './Toast'
+import { GraduationCap, Briefcase } from 'lucide-react'
 
 const PASSWORD_RULES = [
   { test: (p) => p.length >= 8,           label: 'At least 8 characters' },
@@ -158,7 +159,9 @@ export default function SignupForm({ onSwitch }) {
               style={{ flex: 1, textTransform: 'capitalize' }}
               onClick={() => setRole(r)}
             >
-              {r === 'intern' ? '🎓 Intern' : '👔 Supervisor'}
+              {r === 'intern' 
+                ? <><GraduationCap size={16} style={{ marginRight: 6, verticalAlign: 'text-bottom' }} /> Intern</> 
+                : <><Briefcase size={16} style={{ marginRight: 6, verticalAlign: 'text-bottom' }} /> Supervisor</>}
             </button>
           ))}
         </div>

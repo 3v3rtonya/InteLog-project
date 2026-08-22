@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { apiResetPassword, getApiErrorMessage } from '../services/api'
+import { AlertTriangle, CheckCircle2 } from 'lucide-react'
 
 const PASSWORD_RULES = [
   { test: (p) => p.length >= 8,           label: 'At least 8 characters' },
@@ -26,7 +27,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="auth-page">
         <div className="auth-card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>⚠️</div>
+          <div style={{ marginBottom: 12 }}><AlertTriangle size={48} color="#F59E0B" /></div>
           <h2 style={{ marginBottom: 8 }}>Invalid Reset Link</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
             This password reset link is missing or invalid. Please request a new one.
@@ -41,7 +42,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="auth-page">
         <div className="auth-card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>✅</div>
+          <div style={{ marginBottom: 12 }}><CheckCircle2 size={48} color="#10B981" /></div>
           <h2 style={{ marginBottom: 8 }}>Password Reset!</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
             Your password has been updated. You can now log in with your new password.

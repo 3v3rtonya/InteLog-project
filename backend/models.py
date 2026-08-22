@@ -17,6 +17,16 @@ def _now():
     return datetime.now(timezone.utc)
 
 
+# ── Institutions ───────────────────────────────────────────────────────────────
+
+class Institution(Base):
+    __tablename__ = "institutions"
+
+    id         = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name       = Column(String(255), nullable=False, unique=True)
+    created_at = Column(DateTime(timezone=True), default=_now)
+
+
 # ── Users ──────────────────────────────────────────────────────────────────────
 
 class User(Base):
@@ -27,7 +37,7 @@ class User(Base):
     password_hash    = Column(String(255), nullable=True)
     full_name        = Column(String(255), nullable=False)
     phone            = Column(String(20), nullable=True)
-    role             = Column(String(20), nullable=False, default="intern")   # admin|lecturer|supervisor|intern
+    role             = Column(String(20), nullable=False, default="intern")   # super_admin|system_admin|admin|lecturer|supervisor|intern
     status           = Column(String(20), nullable=False, default="pending")  # pending|active|suspended|waiting
     google_id        = Column(String(255), unique=True, nullable=True)
     avatar_url       = Column(Text, nullable=True)
@@ -37,6 +47,7 @@ class User(Base):
     student_id_status= Column(String(20), default="unlinked")  # unlinked|linked|waiting
     school           = Column(String(100), nullable=True)
     department       = Column(String(100), nullable=True)
+    institution_id   = Column(UUID(as_uuid=True), ForeignKey("institutions.id", ondelete="SET NULL"), nullable=True)
 
     # ── Attachment period (interns only) ─────────────────────────
     attachment_start   = Column(Date, nullable=True)
@@ -47,6 +58,7 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), default=_now, onupdate=_now)
 
     # Relationships
+    institution      = relationship("Institution")
     supervisor       = relationship("User", remote_side="User.id", foreign_keys=[supervisor_id])
     logbook_entries  = relationship("LogbookEntry", back_populates="intern",  foreign_keys="LogbookEntry.intern_id")
     supervised_logs  = relationship("LogbookEntry", back_populates="supervisor", foreign_keys="LogbookEntry.supervisor_id")
@@ -88,6 +100,9 @@ class LogbookEntry(Base):
     entry_date           = Column(Date, nullable=False)
     activities_performed = Column(Text, nullable=False)
     solutions_offered    = Column(Text, nullable=False)
+    problems_encountered = Column(Text, nullable=True)
+    lessons_learned      = Column(Text, nullable=True)
+    supervisor_comments  = Column(Text, nullable=True)
     solutions_scrubbed   = Column(Text, nullable=True)
     latitude             = Column(Float, nullable=True)
     longitude            = Column(Float, nullable=True)
@@ -96,6 +111,11 @@ class LogbookEntry(Base):
     status               = Column(String(20), nullable=False, default="draft")  # draft|pending_approval|approved|rejected
     is_flagged           = Column(Boolean, default=False)
     flag_reason          = Column(Text, nullable=True)
+    # ML Classification
+    ai_classification    = Column(String(50), nullable=True)
+    ai_confidence        = Column(Float, nullable=True)
+    ai_feedback          = Column(Text, nullable=True)
+
     submitted_at         = Column(DateTime(timezone=True), nullable=True)
     approved_at          = Column(DateTime(timezone=True), nullable=True)
     created_at           = Column(DateTime(timezone=True), default=_now)
@@ -225,3 +245,42 @@ class PasswordResetToken(Base):
     expires_at = Column(DateTime(timezone=True), nullable=False)
     used       = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), default=_now)
+
+# ── Weekly Summary ─────────────────────────────────────────────────────────────
+
+class WeeklySummary(Base):
+    __tablename__ = "weekly_summaries"
+
+    id                  = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    intern_id           = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    supervisor_id       = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    week_start_date     = Column(Date, nullable=False)
+    week_end_date       = Column(Date, nullable=False)
+    summary_text        = Column(Text, nullable=False)
+    supervisor_feedback = Column(Text, nullable=True)
+    status              = Column(String(20), nullable=False, default="draft")  # draft|pending|approved|rejected
+    
+    submitted_at        = Column(DateTime(timezone=True), nullable=True)
+    reviewed_at         = Column(DateTime(timezone=True), nullable=True)
+    created_at          = Column(DateTime(timezone=True), default=_now)
+
+    intern     = relationship("User", foreign_keys=[intern_id])
+    supervisor = relationship("User", foreign_keys=[supervisor_id])
+
+# ── Attendance (Clock In/Out) ──────────────────────────────────────────────────
+
+class AttendanceRecord(Base):
+    __tablename__ = "attendance_records"
+
+    id                 = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    intern_id          = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    date               = Column(Date, nullable=False)
+    clock_in_time      = Column(DateTime(timezone=True), nullable=True)
+    clock_out_time     = Column(DateTime(timezone=True), nullable=True)
+    clock_in_location  = Column(Text, nullable=True) # json string of lat/long
+    clock_out_location = Column(Text, nullable=True) # json string of lat/long
+    created_at         = Column(DateTime(timezone=True), default=_now)
+
+    __table_args__ = (UniqueConstraint("intern_id", "date", name="uq_attendance_intern_date"),)
+
+    intern = relationship("User", foreign_keys=[intern_id])

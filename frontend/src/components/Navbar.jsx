@@ -1,10 +1,11 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useAuth, useTheme } from '../App'
 import { useNavigate } from 'react-router-dom'
 import { apiLogout } from '../services/api'
 import { useToast } from './Toast'
 import NotificationBell from './NotificationBell'
 import ProfileDrawer from './ProfileDrawer'
+import { Moon, Sun, User } from 'lucide-react'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -44,7 +45,7 @@ export default function Navbar() {
 
           {/* Theme toggle */}
           <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
-            {theme === 'light' ? '🌙' : '☀️'}
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
 
           {/* Profile avatar / name */}
@@ -63,10 +64,11 @@ export default function Navbar() {
                 width: 28, height: 28, borderRadius: '50%', overflow: 'hidden',
                 background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
+                color: 'var(--text-muted)'
               }}>
                 {avatarSrc
                   ? <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <span style={{ fontSize: '0.9rem' }}>👤</span>
+                  : <User size={16} />
                 }
               </div>
               <span style={{ fontSize: '0.875rem', fontWeight: 500, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

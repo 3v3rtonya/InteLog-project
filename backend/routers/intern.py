@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from backend.database import get_db
 from backend.models import User, LogbookEntry, LogImage, SupervisorGeofence, Notification, NonWorkingDay
-from backend.schemas import LogCreateRequest, LogUpdateRequest, LogResponse, ImageResponse
+from backend.schemas import LogbookCreate, LogUpdateRequest, LogResponse, ImageResponse
 from backend.services.pii_service import scrub_pii
 from backend.services.productivity_service import analyze_log_quality
 from backend.services.geo_service import haversine_distance, effective_radius
@@ -35,7 +35,7 @@ def _notify(db, user_id, ntype, title, body, link_id=None, link_type=None):
 
 @router.post("/logs", response_model=LogResponse, status_code=201)
 def create_log(
-    payload: LogCreateRequest,
+    payload: LogbookCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("intern")),
 ):
@@ -78,41 +78,9 @@ def create_log(
             # is_onsite stays False (they're not "on-site" in the formal sense).
             pass
         elif is_holiday_day:
-            # Public holiday — no geofence required, set is_onsite=True
-            # since the system doesn't expect them at work but they chose to submit.
             is_onsite = True
         else:
-            if payload.latitude is None or payload.longitude is None:
-                raise HTTPException(400, "GPS coordinates are required to submit a log entry")
-
-            if not current_user.supervisor_id:
-                raise HTTPException(400, "You have not been assigned a supervisor yet.")
-
-            geo = db.query(SupervisorGeofence).filter(
-                SupervisorGeofence.supervisor_id == current_user.supervisor_id,
-                SupervisorGeofence.is_active == True,
-            ).first()
-
-            if not geo:
-                raise HTTPException(
-                    400,
-                    "Submission unavailable. Awaiting your company supervisor to set the on-site location."
-                )
-
-            distance = haversine_distance(
-                payload.latitude, payload.longitude, geo.latitude, geo.longitude
-            )
-            eff_r = effective_radius(geo.radius_meters, payload.accuracy_m)
-            if distance <= eff_r:
-                is_onsite = True
-            else:
-                raise HTTPException(
-                    400,
-                    f"You must be on-site to submit. You are {distance:.0f} m from {geo.name} "
-                    f"(effective radius: {eff_r:.0f} m). "
-                    f"Ensure you are at the office location and try again."
-                )
-
+            is_onsite = True # Geofence validation moved to Clock In/Out system
     solutions_scrubbed = scrub_pii(payload.solutions_offered)
     is_flagged, flag_reason = analyze_log_quality(
         payload.activities_performed, payload.solutions_offered
@@ -124,6 +92,8 @@ def create_log(
         entry_date=payload.entry_date,
         activities_performed=payload.activities_performed,
         solutions_offered=payload.solutions_offered,
+        problems_encountered=payload.problems_encountered,
+        lessons_learned=payload.lessons_learned,
         solutions_scrubbed=solutions_scrubbed,
         latitude=payload.latitude,
         longitude=payload.longitude,
@@ -132,6 +102,9 @@ def create_log(
         status=payload.status,
         is_flagged=is_flagged,
         flag_reason=flag_reason if is_flagged else None,
+        ai_classification=payload.ai_classification,
+        ai_confidence=payload.ai_confidence,
+        ai_feedback=payload.ai_feedback,
         submitted_at=datetime.now(timezone.utc) if payload.status == "pending_approval" else None,
     )
     db.add(log)

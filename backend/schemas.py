@@ -1,7 +1,7 @@
 """
 schemas.py - Pydantic schemas for request/response validation.
 """
-from pydantic import BaseModel, field_validator, ConfigDict
+from pydantic import BaseModel, field_validator, ConfigDict, Field
 from typing import Optional, List
 from datetime import datetime, date
 from uuid import UUID
@@ -344,14 +344,22 @@ class BulkAssignInternRequest(BaseModel):
 
 # ─── Logbook ──────────────────────────────────────────────────────────────────
 
-class LogCreateRequest(BaseModel):
+class LogbookBase(BaseModel):
     entry_date: date
-    activities_performed: str
-    solutions_offered: str
+    activities_performed: str = Field(..., min_length=10)
+    solutions_offered: str = Field(..., min_length=10)
+    problems_encountered: Optional[str] = None
+    lessons_learned: Optional[str] = None
+
+class LogbookCreate(LogbookBase):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     accuracy_m: Optional[float] = None
     status: str = "draft"
+    is_onsite: Optional[bool] = False
+    ai_classification: Optional[str] = None
+    ai_confidence: Optional[float] = None
+    ai_feedback: Optional[str] = None
 
     @field_validator("activities_performed", "solutions_offered", mode="before")
     @classmethod
@@ -373,10 +381,16 @@ class LogUpdateRequest(BaseModel):
     entry_date: Optional[date] = None
     activities_performed: Optional[str] = None
     solutions_offered: Optional[str] = None
+    problems_encountered: Optional[str] = None
+    lessons_learned: Optional[str] = None
+    supervisor_comments: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     accuracy_m: Optional[float] = None
     status: Optional[str] = None
+    ai_classification: Optional[str] = None
+    ai_confidence: Optional[float] = None
+    ai_feedback: Optional[str] = None
 
     @field_validator("status", mode="before")
     @classmethod
@@ -404,6 +418,9 @@ class LogResponse(BaseModel):
     entry_date: date
     activities_performed: str
     solutions_offered: str
+    problems_encountered: Optional[str] = None
+    lessons_learned: Optional[str] = None
+    supervisor_comments: Optional[str] = None
     solutions_scrubbed: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -411,6 +428,9 @@ class LogResponse(BaseModel):
     status: str
     is_flagged: bool
     flag_reason: Optional[str] = None
+    ai_classification: Optional[str] = None
+    ai_confidence: Optional[float] = None
+    ai_feedback: Optional[str] = None
     submitted_at: Optional[datetime] = None
     approved_at: Optional[datetime] = None
     created_at: datetime
@@ -535,7 +555,7 @@ class AttachmentDatesRequest(BaseModel):
     attachment_start: date
     attachment_end: date
 
-    @field_validator("attachment_end", mode="before")
+    @field_validator("attachment_end", mode="after")
     @classmethod
     def v_end_after_start(cls, v, info):
         if hasattr(info, "data") and "attachment_start" in info.data:

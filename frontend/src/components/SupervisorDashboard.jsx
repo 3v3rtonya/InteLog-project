@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiGetPendingLogs, apiGetSupervisorInterns } from '../services/api'
 import StatusBadge from './StatusBadge'
+import { ClipboardList, Users, CheckCircle } from 'lucide-react'
 
 export default function SupervisorDashboard() {
   const navigate = useNavigate()
@@ -32,12 +33,12 @@ export default function SupervisorDashboard() {
 
       <div className="stats-grid">
         <div className="stat-card yellow">
-          <div className="stat-card-icon">📋</div>
+          <div className="stat-card-icon"><ClipboardList size={28} /></div>
           <div className="stat-card-label">Pending Logs</div>
           <div className="stat-card-value">{pendingCount}</div>
         </div>
         <div className="stat-card green">
-          <div className="stat-card-icon">👥</div>
+          <div className="stat-card-icon"><Users size={28} /></div>
           <div className="stat-card-label">My Interns</div>
           <div className="stat-card-value">{internCount}</div>
         </div>
@@ -52,7 +53,7 @@ export default function SupervisorDashboard() {
           <div className="spinner-center"><div className="spinner spinner-md" /></div>
         ) : recentLogs.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">✅</div>
+            <div className="empty-state-icon"><CheckCircle size={48} color="var(--brand-green)" /></div>
             <div className="empty-state-title">No pending logs</div>
           </div>
         ) : (

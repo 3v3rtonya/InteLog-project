@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { apiDownloadTemplate, apiPreRegisterUpload } from '../services/api'
 import { useToast } from './Toast'
+import { Download, Upload, FileText, FolderOpen, GraduationCap, ClipboardEdit } from 'lucide-react'
 
 const ACTION_LABELS = {
   created_intern:        { label: 'Created',        color: '#16a34a', bg: '#dcfce7' },
@@ -111,7 +112,7 @@ export default function PreRegisterPage() {
           </p>
         </div>
         <button className="btn btn-outline btn-sm" onClick={handleDownloadTemplate}>
-          ⬇ Download CSV Template
+          <Download size={16} style={{ marginRight: 6 }} /> Download CSV Template
         </button>
       </div>
 
@@ -122,10 +123,10 @@ export default function PreRegisterPage() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
           {[
-            { n: '1', icon: '📥', title: 'Download template', desc: 'Get the CSV template with the correct column headers' },
-            { n: '2', icon: '📝', title: 'Fill in student list', desc: 'Add student names, IDs, emails, phones, school, dept and their lecturer details' },
-            { n: '3', icon: '⬆', title: 'Upload CSV', desc: 'System creates shell accounts and assigns each student to their lecturer' },
-            { n: '4', icon: '🎓', title: 'Students register', desc: 'Student opens the app, signs up with their student ID — their pre-assignment activates automatically' },
+            { n: '1', icon: <Download size={24} />, title: 'Download template', desc: 'Get the CSV template with the correct column headers' },
+            { n: '2', icon: <ClipboardEdit size={24} />, title: 'Fill in student list', desc: 'Add student names, IDs, emails, phones, school, dept and their lecturer details' },
+            { n: '3', icon: <Upload size={24} />, title: 'Upload CSV', desc: 'System creates shell accounts and assigns each student to their lecturer' },
+            { n: '4', icon: <GraduationCap size={24} />, title: 'Students register', desc: 'Student opens the app, signs up with their student ID — their pre-assignment activates automatically' },
           ].map(s => (
             <div key={s.n} style={{
               background: 'var(--bg-secondary)', borderRadius: 8,
@@ -185,7 +186,7 @@ export default function PreRegisterPage() {
           />
           {file ? (
             <>
-              <div style={{ fontSize: '2rem', marginBottom: 6 }}>📄</div>
+              <div style={{ fontSize: '2rem', marginBottom: 6 }}><FileText size={40} color="var(--accent)" /></div>
               <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{file.name}</div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 4 }}>
                 {(file.size / 1024).toFixed(1)} KB — click to change
@@ -193,7 +194,7 @@ export default function PreRegisterPage() {
             </>
           ) : (
             <>
-              <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>📂</div>
+              <div style={{ fontSize: '2.5rem', marginBottom: 8 }}><FolderOpen size={48} color="var(--text-secondary)" /></div>
               <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
                 Drag &amp; drop your CSV here
               </div>
@@ -213,7 +214,7 @@ export default function PreRegisterPage() {
           >
             {uploading
               ? <><span className="spinner spinner-sm" style={{ marginRight: 8 }} />Importing…</>
-              : '⬆ Import Students'
+              : <><Upload size={16} style={{ marginRight: 6 }} /> Import Students</>
             }
           </button>
           {file && (

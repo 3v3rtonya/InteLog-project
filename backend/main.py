@@ -14,7 +14,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from backend.config import settings
 from backend.database import get_db_status
 from backend.routers import auth, admin, supervisor, intern, geo
-from backend.routers import notifications, geofence, lecturer, attendance, holidays, preregister
+from backend.routers import notifications, geofence, lecturer, attendance, holidays, preregister, assess
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
@@ -53,6 +53,7 @@ app.include_router(lecturer.router)
 app.include_router(attendance.router)
 app.include_router(holidays.router)
 app.include_router(preregister.router)
+app.include_router(assess.router)
 
 # Static file serving
 upload_dir = settings.UPLOAD_DIR

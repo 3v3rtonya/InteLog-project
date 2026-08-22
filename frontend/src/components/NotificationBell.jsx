@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { apiGetNotifications, apiGetUnreadCount, apiMarkRead, apiMarkAllRead } from '../services/api'
 import { useNavigate } from 'react-router-dom'
+import { Bell, User, ClipboardList, CheckCircle, XCircle, AlertTriangle, Link2, Ban } from 'lucide-react'
 
 export default function NotificationBell() {
   const [unread, setUnread] = useState(0)
@@ -58,10 +59,10 @@ export default function NotificationBell() {
   }
 
   const ICONS = {
-    new_signup: '👤', log_submitted: '📋', log_approved: '✅',
-    log_rejected: '❌', log_flagged: '⚠️',
+    new_signup: <User size={16} />, log_submitted: <ClipboardList size={16} />, log_approved: <CheckCircle size={16} color="var(--brand-green)" />,
+    log_rejected: <XCircle size={16} color="#EF4444" />, log_flagged: <AlertTriangle size={16} color="#F59E0B" />,
     geofence_repin: <img src="/icon-location.svg" alt="location" style={{ width: '1.1em', height: '1.1em', verticalAlign: 'middle' }} />,
-    pairing_approved: '🔗', pairing_rejected: '🚫',
+    pairing_approved: <Link2 size={16} />, pairing_rejected: <Ban size={16} color="#EF4444" />,
   }
 
   return (
@@ -74,7 +75,7 @@ export default function NotificationBell() {
         aria-label={`Notifications${unread > 0 ? ` (${unread} unread)` : ''}`}
         style={{ position: 'relative' }}
       >
-        🔔
+        <Bell size={20} />
         {unread > 0 && (
           <span style={{
             position: 'absolute', top: 2, right: 2,
@@ -141,7 +142,7 @@ export default function NotificationBell() {
               >
                 <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <span style={{ fontSize: '1.1rem', flexShrink: 0, marginTop: 1 }}>
-                    {ICONS[n.type] || '🔔'}
+                    {ICONS[n.type] || <Bell size={16} />}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
@@ -181,7 +182,7 @@ export default function NotificationBell() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">
-                {ICONS[selected.type] || '🔔'} {selected.title}
+                {ICONS[selected.type] || <Bell size={16} />} {selected.title}
               </h3>
               <button className="modal-close" onClick={() => setSelected(null)}>×</button>
             </div>

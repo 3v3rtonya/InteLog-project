@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { apiGetAttendanceStats } from '../services/api'
 import { useToast } from './Toast'
+import { CheckCircle, Clock, Stethoscope, Sun, AlertTriangle, Clock4, HelpCircle, Timer, Calendar as CalendarIcon, CalendarDays } from 'lucide-react'
 
 /**
  * AttendanceCalendar
@@ -153,10 +154,10 @@ export default function AttendanceCalendar({ internId = null, compact = false })
         padding: '12px 16px', marginBottom: 16,
         display: 'flex', flexWrap: 'wrap', gap: '6px 24px', fontSize: '0.85rem',
       }}>
-        <span>📅 <strong>Attachment:</strong> {stats.attachment_start} → {stats.attachment_end}</span>
-        <span>🗓️ <strong>Working days:</strong> {total}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><CalendarIcon size={16} /> <strong>Attachment:</strong> {stats.attachment_start} → {stats.attachment_end}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><CalendarDays size={16} /> <strong>Working days:</strong> {total}</span>
         {stats.unexplained > 0 && (
-          <span style={{ color: '#b91c1c' }}>⚠️ <strong>Unexplained:</strong> {stats.unexplained}</span>
+          <span style={{ color: '#b91c1c', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={16} /> <strong>Unexplained:</strong> {stats.unexplained}</span>
         )}
       </div>
 
@@ -175,15 +176,15 @@ export default function AttendanceCalendar({ internId = null, compact = false })
       {!compact && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
           {[
-            { key: 'approved',         icon: '✅', label: 'Approved',   val: stats.approved },
-            { key: 'pending',          icon: '⏳', label: 'Pending',    val: stats.pending },
-            { key: 'absent_sick',      icon: '🤒', label: 'Sick',       val: stats.absent_sick },
-            { key: 'absent_day_off',   icon: '🏖️', label: 'Day Off',    val: stats.absent_day_off },
-            { key: 'absent_emergency', icon: '⚠️', label: 'Emergency',  val: stats.absent_emergency },
-            { key: 'absent_half_day',  icon: '🕛', label: 'Half Day',   val: stats.absent_half_day },
-            { key: 'unexplained',      icon: '❓', label: 'Unexplained',val: stats.unexplained },
-            { key: 'within_grace',     icon: '⏱️', label: 'In Grace',   val: stats.within_grace },
-            { key: 'non_working',      icon: '📅', label: 'Non-Working',val: stats.non_working },
+            { key: 'approved',         icon: <CheckCircle size={14} />, label: 'Approved',   val: stats.approved },
+            { key: 'pending',          icon: <Clock size={14} />, label: 'Pending',    val: stats.pending },
+            { key: 'absent_sick',      icon: <Stethoscope size={14} />, label: 'Sick',       val: stats.absent_sick },
+            { key: 'absent_day_off',   icon: <Sun size={14} />, label: 'Day Off',    val: stats.absent_day_off },
+            { key: 'absent_emergency', icon: <AlertTriangle size={14} />, label: 'Emergency',  val: stats.absent_emergency },
+            { key: 'absent_half_day',  icon: <Clock4 size={14} />, label: 'Half Day',   val: stats.absent_half_day },
+            { key: 'unexplained',      icon: <HelpCircle size={14} />, label: 'Unexplained',val: stats.unexplained },
+            { key: 'within_grace',     icon: <Timer size={14} />, label: 'In Grace',   val: stats.within_grace },
+            { key: 'non_working',      icon: <CalendarIcon size={14} />, label: 'Non-Working',val: stats.non_working },
           ].map(({ key, icon, label, val }) => (
             <div key={key} style={{
               background: STATUS_META[key]?.bg || '#f1f5f9',

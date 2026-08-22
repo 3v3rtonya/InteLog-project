@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useAuth } from '../App'
 import { apiUpdateProfile, apiUploadAvatar, apiChangePassword } from '../services/api'
 import { useToast } from './Toast'
+import { User, Pencil } from 'lucide-react'
 
 export default function ProfileDrawer({ onClose }) {
   const { user, login } = useAuth()
@@ -124,7 +125,7 @@ export default function ProfileDrawer({ onClose }) {
               {avatarSrc ? (
                 <img src={avatarSrc} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <span style={{ fontSize: '2rem' }}>👤</span>
+                <User size={40} color="var(--text-muted)" />
               )}
             </div>
             <button
@@ -138,7 +139,7 @@ export default function ProfileDrawer({ onClose }) {
               }}
               title="Change photo"
             >
-              ✏️
+              <Pencil size={14} />
             </button>
           </div>
           <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp" style={{ display: 'none' }} onChange={handleAvatarChange} />

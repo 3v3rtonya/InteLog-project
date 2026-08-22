@@ -50,3 +50,5 @@ frontend/uploads/
 *.sqlite3
 *.db
 backend/app.db
+
+*.safetensors

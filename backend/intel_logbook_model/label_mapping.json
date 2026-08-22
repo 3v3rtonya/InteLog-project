@@ -1,0 +1,12 @@
+{
+    "label2id": {
+        "INADEQUATE": 0,
+        "LOW_DETAIL": 1,
+        "HIGH_QUALITY": 2
+    },
+    "id2label": {
+        "0": "INADEQUATE",
+        "1": "LOW_DETAIL",
+        "2": "HIGH_QUALITY"
+    }
+}

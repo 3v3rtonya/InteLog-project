@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
 import { useAuth } from '../App'
 import { useNavigate } from 'react-router-dom'
-import { apiLogout } from '../services/api'
+import { apiLogout, apiGetMe } from '../services/api'
+import { Link2, Hourglass } from 'lucide-react'
 
 export default function PendingPage() {
-  const { user, logout } = useAuth()
+  const { user, logout, login } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -15,10 +17,25 @@ export default function PendingPage() {
   // Supervisor waiting for intern to register
   const isWaiting = user?.status === 'waiting'
 
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const { data } = await apiGetMe()
+        if (data.status === 'active') {
+          // Status changed! Force a reload so the frontend fetches a fresh token
+          window.location.reload()
+        }
+      } catch (err) {}
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div className="pending-page">
       <div className="card pending-card">
-        <div className="pending-icon">{isWaiting ? '🔗' : '⏳'}</div>
+        <div className="pending-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+          {isWaiting ? <Link2 size={64} color="var(--brand-green)" /> : <Hourglass size={64} color="var(--brand-green)" />}
+        </div>
 
         {isWaiting ? (
           <>

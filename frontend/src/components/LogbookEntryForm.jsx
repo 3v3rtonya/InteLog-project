@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { apiCreateLog, apiUpdateLog, apiGetLog } from '../services/api'
+import { apiCreateLog, apiUpdateLog, apiGetLog, apiAssessLogbook } from '../services/api'
 import { useToast } from './Toast'
 import GeolocationCapture from './GeolocationCapture'
 import ImageUploader from './ImageUploader'
 import PIIScrubPreview from './PIIScrubPreview'
+import { AlertTriangle, Lightbulb, Save, Send, Wand2 } from 'lucide-react'
 
 export default function LogbookEntryForm() {
   const navigate = useNavigate()
@@ -16,13 +17,16 @@ export default function LogbookEntryForm() {
     entry_date: today,
     activities_performed: '',
     solutions_offered: '',
+    problems_encountered: '',
+    lessons_learned: '',
   })
-  const [geo, setGeo] = useState({ latitude: null, longitude: null, isOnsite: false, accuracy: null })
   const [logId, setLogId] = useState(id || null)
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(!!id)
   const [showPII, setShowPII] = useState(false)
   const [errors, setErrors] = useState({})
+  const [assessment, setAssessment] = useState(null)
+  const [assessing, setAssessing] = useState(false)
 
   // Load existing draft when editing
   useEffect(() => {
@@ -38,6 +42,8 @@ export default function LogbookEntryForm() {
           entry_date: data.entry_date,
           activities_performed: data.activities_performed,
           solutions_offered: data.solutions_offered,
+          problems_encountered: data.problems_encountered || '',
+          lessons_learned: data.lessons_learned || '',
         })
         setLogId(data.id)
       })
@@ -52,7 +58,10 @@ export default function LogbookEntryForm() {
 
   const countWords = (text) => text.trim() === '' ? 0 : text.trim().split(/\s+/).length
   const MAX_WORDS = 250
-  const totalWords = countWords(form.activities_performed) + countWords(form.solutions_offered)
+  const totalWords = countWords(form.activities_performed) + 
+                     countWords(form.solutions_offered) +
+                     countWords(form.problems_encountered) +
+                     countWords(form.lessons_learned)
   const wordsLeft = MAX_WORDS - totalWords
 
   const validate = () => {
@@ -63,6 +72,30 @@ export default function LogbookEntryForm() {
     if (totalWords > MAX_WORDS) e.solutions_offered = `Total word count (${totalWords}) exceeds the ${MAX_WORDS}-word maximum.`
     setErrors(e)
     return Object.keys(e).length === 0
+  }
+
+  const handleAssess = async () => {
+    if (!form.activities_performed.trim() && !form.solutions_offered.trim()) {
+      showToast('Please enter activities and solutions first.', 'error')
+      return
+    }
+    setAssessing(true)
+    try {
+      const combinedText = [
+        form.activities_performed, 
+        form.solutions_offered, 
+        form.problems_encountered, 
+        form.lessons_learned
+      ].filter(Boolean).join('\n')
+      
+      const { data } = await apiAssessLogbook({ text: combinedText })
+      setAssessment(data)
+      showToast('Assessment complete', 'success')
+    } catch (err) {
+      showToast('Failed to assess entry', 'error')
+    } finally {
+      setAssessing(false)
+    }
   }
 
   const saveDraft = async () => {
@@ -88,17 +121,10 @@ export default function LogbookEntryForm() {
 
   const handleSubmit = async () => {
     if (!validate()) return
-    if (!geo.isOnsite) {
-      showToast('You must verify your location before submitting', 'error')
-      return
-    }
     setLoading(true)
     try {
       const payload = {
         ...form,
-        latitude: geo.latitude,
-        longitude: geo.longitude,
-        accuracy_m: geo.accuracy ?? null,
         status: 'pending_approval',
       }
       if (logId) {
@@ -201,15 +227,34 @@ export default function LogbookEntryForm() {
 
         {showPII && <PIIScrubPreview text={form.solutions_offered} />}
 
-        {/* Geolocation */}
+
+
+        {/* Problems Encountered */}
         <div className="form-group">
-          <label className="form-label">Location Verification</label>
-          <GeolocationCapture onResult={setGeo} />
-          {!geo.isOnsite && (
-            <p className="form-hint" style={{ marginTop: 4 }}>
-              ⚠️ Location must be verified as on-site before you can submit.
-            </p>
-          )}
+          <label className="form-label" htmlFor="log-problems">Unique Problems Encountered</label>
+          <textarea
+            id="log-problems"
+            className="form-textarea"
+            rows={4}
+            value={form.problems_encountered}
+            onChange={set('problems_encountered')}
+            placeholder="Describe any challenges or unique problems you faced..."
+            style={{ minHeight: 90 }}
+          />
+        </div>
+
+        {/* Lessons Learned */}
+        <div className="form-group">
+          <label className="form-label" htmlFor="log-lessons">Lessons Learnt</label>
+          <textarea
+            id="log-lessons"
+            className="form-textarea"
+            rows={4}
+            value={form.lessons_learned}
+            onChange={set('lessons_learned')}
+            placeholder="What new skills or lessons did you learn today?"
+            style={{ minHeight: 90 }}
+          />
         </div>
 
         {/* Image uploader — only available after draft is saved */}
@@ -220,22 +265,42 @@ export default function LogbookEntryForm() {
           </div>
         ) : (
           <div className="alert alert-info" style={{ marginBottom: 16 }}>
-            💡 Save as draft first to upload evidence photos.
+            <Lightbulb size={16} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} /> Save as draft first to upload evidence photos.
           </div>
         )}
 
         {/* Action buttons */}
+        {assessment && (
+          <div className={`alert ${assessment.classification === 'HIGH_QUALITY' ? 'alert-success' : assessment.classification === 'LOW_DETAIL' ? 'alert-warning' : 'alert-error'}`} style={{ marginBottom: 16 }}>
+            <h4 style={{ margin: '0 0 8px 0', fontSize: '1.1em' }}>AI Feedback: {assessment.classification.replace('_', ' ')}</h4>
+            <p style={{ margin: '0 0 8px 0' }}>{assessment.feedback}</p>
+            <p style={{ margin: 0, fontSize: '0.85em', opacity: 0.8 }}>Confidence: {(assessment.confidence * 100).toFixed(1)}%</p>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
-          <button className="btn btn-secondary" onClick={saveDraft} disabled={loading}>
-            {loading ? <span className="spinner spinner-sm" /> : '💾 Save Draft'}
+          <button 
+            className="btn" 
+            style={{ 
+              background: 'linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%)', 
+              color: 'white', 
+              border: 'none', 
+              boxShadow: '0 4px 6px -1px rgba(139, 92, 246, 0.3)' 
+            }} 
+            onClick={handleAssess} 
+            disabled={loading || assessing} 
+            type="button"
+          >
+            {assessing ? <span className="spinner spinner-sm" /> : <><Wand2 size={16} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} /> Pre-Assess with AI</>}
+          </button>
+          <button className="btn btn-secondary" onClick={saveDraft} disabled={loading || assessing}>
+            {loading ? <span className="spinner spinner-sm" /> : <><Save size={16} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} /> Save Draft</>}
           </button>
           <button
             className="btn btn-primary"
             onClick={handleSubmit}
-            disabled={loading || !geo.isOnsite}
-            title={!geo.isOnsite ? 'Verify your location first' : ''}
+            disabled={loading}
           >
-            {loading ? <span className="spinner spinner-sm" /> : '📤 Submit for Approval'}
+            {loading ? <span className="spinner spinner-sm" /> : <><Send size={16} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} /> Submit for Approval</>}
           </button>
           <button className="btn btn-outline" onClick={() => navigate('/intern/logs')} disabled={loading}>
             Cancel

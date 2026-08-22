@@ -1,4 +1,4 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 
 export const getApiErrorMessage = (err) => {
   const detail = err?.response?.data?.detail
@@ -138,6 +138,7 @@ export const apiDeleteImage = (logId, imgId) => api.delete(`/intern/logs/${logId
 
 // ── Geo (legacy) ──────────────────────────────────────────────────────────
 export const apiValidateLocation = (d) => api.post('/geo/validate', d)
+export const apiAssessLogbook = (d) => api.post('/assess/logbook', d)
 
 export default api
 
