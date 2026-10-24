@@ -1,4 +1,4 @@
-"""
+﻿"""
 main.py - FastAPI application entry point
 """
 import os
@@ -13,8 +13,9 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from backend.config import settings
 from backend.database import get_db_status
-from backend.routers import auth, admin, supervisor, intern, geo
-from backend.routers import notifications, geofence, lecturer, attendance, holidays, preregister, assess
+from backend.routers import auth, admin, supervisor, intern, notifications, geofence, lecturer, attendance, holidays, preregister, assess
+from backend.routers import clock_attendance, weekly_summary
+from backend.routers import coordinator
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
@@ -35,6 +36,7 @@ app.add_middleware(
         "http://localhost:5173",
         "http://localhost:5174",
         "http://localhost:5175",
+        "http://192.168.0.105:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -46,7 +48,6 @@ app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(supervisor.router)
 app.include_router(intern.router)
-app.include_router(geo.router)
 app.include_router(notifications.router)
 app.include_router(geofence.router)
 app.include_router(lecturer.router)
@@ -54,6 +55,9 @@ app.include_router(attendance.router)
 app.include_router(holidays.router)
 app.include_router(preregister.router)
 app.include_router(assess.router)
+app.include_router(clock_attendance.router)
+app.include_router(weekly_summary.router)
+app.include_router(coordinator.router)
 
 # Static file serving
 upload_dir = settings.UPLOAD_DIR
