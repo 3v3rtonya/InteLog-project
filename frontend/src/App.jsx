@@ -61,7 +61,7 @@ function ProtectedRoute({ children, roles }) {
   if (user.status === 'suspended') return <Navigate to="/login" replace />
   if (user.status === 'shell') return <Navigate to="/login" replace />
   // pending/waiting users always go to holding page
-  if (user.status === 'pending' || user.status === 'waiting') return <Navigate to="/pending" replace />
+  // pending/waiting no longer blocks - intern/supervisor are active on signup
   if (roles && !roles.includes(user.role)) return <Navigate to="/" replace />
   return children
 }
@@ -71,7 +71,7 @@ function RootRedirect() {
   const { user, loading } = useAuth()
   if (loading) return <div className="spinner-center"><div className="spinner spinner-lg" /></div>
   if (!user) return <Navigate to="/login" replace />
-  if (user.status === 'pending' || user.status === 'waiting') return <Navigate to="/pending" replace />
+  // pending/waiting no longer blocks - intern/supervisor are active on signup
   if (user.status === 'suspended') return <Navigate to="/login" replace />
   if (user.status === 'shell') return <Navigate to="/login" replace />
   if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />
@@ -107,6 +107,7 @@ import AuthPage from './components/AuthPage'
 import PendingPage from './components/PendingPage'
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
+import { SidebarProvider } from './context/SidebarContext'
 import { ToastProvider } from './components/Toast'
 import ResetPasswordPage from './components/ResetPasswordPage'
 import NotificationHistory from './components/NotificationHistory'
@@ -134,19 +135,28 @@ import LecturerDashboard from './components/LecturerDashboard'
 import LecturerInternList from './components/LecturerInternList'
 import LecturerPendingLinks from './components/LecturerPendingLinks'
 import LecturerLogsView from './components/LecturerLogsView'
+import ClockInOut from './components/ClockInOut'
+import CoordinatorDashboard from './components/CoordinatorDashboard'
+import CoordinatorPendingPage from './components/CoordinatorPendingPage'
+import CoordinatorLogsView from './components/CoordinatorLogsView'
+import WeeklySummaryList from './components/WeeklySummaryList'
+import WeeklySummaryForm from './components/WeeklySummaryForm'
+import WeeklySummaryReview from './components/WeeklySummaryReview'
 
 // ── Authenticated layout ───────────────────────────────────────────────────
 function AppLayout({ children }) {
   return (
-    <div className="app-layout">
-      <Sidebar />
-      <div className="main-content">
-        <Navbar />
-        <main className="page-content">
-          <ErrorBoundary>{children}</ErrorBoundary>
-        </main>
+    <SidebarProvider>
+      <div className="app-layout">
+        <Sidebar />
+        <div className="main-content">
+          <Navbar />
+          <main className="page-content">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   )
 }
 
@@ -164,7 +174,7 @@ export default function App() {
               <Route path="/supervisor/login" element={<Navigate to="/login" replace />} />
               <Route path="/admin/login" element={<Navigate to="/login" replace />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/pending" element={<ProtectedRoute><PendingPage /></ProtectedRoute>} />
+              <Route path="/pending" element={<PendingPage />} />
 
               {/* Shared — all authenticated roles */}
               <Route path="/notifications" element={<ProtectedRoute><AppLayout><NotificationHistory /></AppLayout></ProtectedRoute>} />
@@ -196,6 +206,22 @@ export default function App() {
               <Route path="/lecturer/interns" element={<ProtectedRoute roles={['lecturer']}><AppLayout><LecturerInternList /></AppLayout></ProtectedRoute>} />
               <Route path="/lecturer/pending-links" element={<ProtectedRoute roles={['lecturer']}><AppLayout><LecturerPendingLinks /></AppLayout></ProtectedRoute>} />
               <Route path="/lecturer/logs" element={<ProtectedRoute roles={['lecturer']}><AppLayout><LecturerLogsView /></AppLayout></ProtectedRoute>} />
+
+              {/* Coordinator */}
+              <Route path="/coordinator/dashboard" element={<ProtectedRoute roles={['lecturer']}><AppLayout><CoordinatorDashboard /></AppLayout></ProtectedRoute>} />
+              <Route path="/coordinator/pending"   element={<ProtectedRoute roles={['lecturer']}><AppLayout><CoordinatorPendingPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/coordinator/allocate"  element={<ProtectedRoute roles={['lecturer']}><AppLayout><PreRegisterPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/coordinator/logs"      element={<ProtectedRoute roles={['lecturer']}><AppLayout><CoordinatorLogsView /></AppLayout></ProtectedRoute>} />
+
+              {/* Weekly Summaries */}
+              <Route path="/intern/weekly-summary" element={<ProtectedRoute roles={['intern']}><AppLayout><WeeklySummaryList /></AppLayout></ProtectedRoute>} />
+              <Route path="/intern/weekly-summary/new" element={<ProtectedRoute roles={['intern']}><AppLayout><WeeklySummaryForm /></AppLayout></ProtectedRoute>} />
+              <Route path="/intern/weekly-summary/:id/edit" element={<ProtectedRoute roles={['intern']}><AppLayout><WeeklySummaryForm /></AppLayout></ProtectedRoute>} />
+              <Route path="/intern/weekly-summary/:id" element={<ProtectedRoute roles={['intern']}><AppLayout><WeeklySummaryForm /></AppLayout></ProtectedRoute>} />
+              <Route path="/supervisor/weekly-summaries" element={<ProtectedRoute roles={['supervisor']}><AppLayout><WeeklySummaryList /></AppLayout></ProtectedRoute>} />
+              <Route path="/supervisor/weekly-summaries/:id/review" element={<ProtectedRoute roles={['supervisor']}><AppLayout><WeeklySummaryReview /></AppLayout></ProtectedRoute>} />
+              <Route path="/lecturer/weekly-summaries" element={<ProtectedRoute roles={['lecturer']}><AppLayout><WeeklySummaryList /></AppLayout></ProtectedRoute>} />
+              <Route path="/admin/weekly-summaries" element={<ProtectedRoute roles={['admin']}><AppLayout><WeeklySummaryList /></AppLayout></ProtectedRoute>} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
