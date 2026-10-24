@@ -1,4 +1,4 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 
 export const getApiErrorMessage = (err) => {
   const detail = err?.response?.data?.detail
@@ -57,9 +57,10 @@ api.interceptors.response.use(
   }
 )
 
-// ── Auth ──────────────────────────────────────────────────────────────────
+//  Auth 
 export const apiSignupIntern = (d) => api.post('/auth/signup/intern', d)
 export const apiSignupSupervisor = (d) => api.post('/auth/signup/supervisor', d)
+export const apiSignupLecturer = (d) => api.post('/auth/signup/lecturer', d)
 export const apiLogin = (d) => api.post('/auth/login', d)
 export const apiGoogleAuth = (code) => api.post('/auth/google', { code })
 export const apiLogout = () => api.post('/auth/logout')
@@ -70,14 +71,14 @@ export const apiUpdateProfile = (d) => api.put('/auth/profile', d)
 export const apiUploadAvatar = (file) => { const fd = new FormData(); fd.append('file', file); return api.post('/auth/profile/avatar', fd) }
 export const apiChangePassword = (d) => api.post('/auth/profile/change-password', d)
 
-// ── Notifications ─────────────────────────────────────────────────────────
+//  Notifications 
 export const apiGetNotifications = (params = {}) => api.get('/notifications', { params })
 export const apiGetUnreadCount = () => api.get('/notifications/count')
 export const apiMarkRead = (id) => api.post(`/notifications/${id}/read`)
 export const apiMarkAllRead = () => api.post('/notifications/read-all')
 export const apiGetNotificationHistory = (p = 1) => api.get(`/notifications/history?page=${p}`)
 
-// ── Geofence (supervisor-only pin/re-pin) ─────────────────────────────────
+//  Geofence (supervisor-only pin/re-pin) 
 export const apiGetMyGeofence = () => api.get('/geofence/my')
 export const apiPinGeofence = (d) => api.post('/geofence/pin', d)
 export const apiCheckGeofence = (lat, lon, accuracyM = null) => {
@@ -86,12 +87,13 @@ export const apiCheckGeofence = (lat, lon, accuracyM = null) => {
   return api.get(`/geofence/check?${params.toString()}`)
 }
 
-// ── Admin — users & logs ──────────────────────────────────────────────────
+//  Admin " users & logs 
 export const apiGetPendingRequests = (p = 1) => api.get(`/admin/pending-requests?page=${p}`)
 export const apiRepairLink = (d) => api.post('/admin/repair-link', d)
 export const apiGetUsers = (params = {}) => api.get('/admin/users', { params })
 export const apiCreateUser = (d) => api.post('/admin/users', d)
 export const apiUpdateUser = (id, d) => api.put(`/admin/users/${id}`, d)
+export const apiApproveUser = (id) => api.post('/admin/users/' + id + '/approve')
 export const apiDeleteUser = (id) => api.delete(`/admin/users/${id}`)
 export const apiGetFlaggedLogs = (p = 1) => api.get(`/admin/flagged-logs?page=${p}`)
 export const apiGetAllLogs = (params = {}) => api.get('/admin/logs', { params })
@@ -101,14 +103,11 @@ export const apiCreateSite = (d) => api.post('/admin/sites', d)
 export const apiUpdateSite = (id, d) => api.put(`/admin/sites/${id}`, d)
 export const apiDeleteSite = (id) => api.delete(`/admin/sites/${id}`)
 
-// ── Admin — lecturer management ───────────────────────────────────────────
-export const apiCreateLecturer = (d) => api.post('/admin/lecturers', d)
-export const apiGetLecturers = (params = {}) => api.get('/admin/lecturers', { params })
 export const apiAssignIntern = (d) => api.post('/admin/assign-intern', d)
 export const apiBulkAssignInterns = (d) => api.post('/admin/assign-interns/bulk', d)
 export const apiUnassignIntern = (internId) => api.delete(`/admin/assign-intern/${internId}`)
 
-// ── Lecturer ──────────────────────────────────────────────────────────────
+//  Lecturer 
 export const apiGetLecturerInterns = () => api.get('/lecturer/my-interns')
 export const apiGetPendingLinks = (p = 1) => api.get(`/lecturer/pending-links?page=${p}`)
 export const apiApproveLecturerLink = (d) => api.post('/lecturer/approve-link', d)
@@ -116,7 +115,7 @@ export const apiGetCohortLogs = (params = {}) => api.get('/lecturer/logs', { par
 export const apiGetCohortLog = (id) => api.get(`/lecturer/logs/${id}`)
 export const apiGetFlaggedCohortLogs = (p = 1) => api.get(`/lecturer/flagged-logs?page=${p}`)
 
-// ── Supervisor ────────────────────────────────────────────────────────────
+//  Supervisor 
 export const apiGetPendingLogs = (p = 1) => api.get(`/supervisor/pending-logs?page=${p}`)
 export const apiApproveLog = (id) => api.post(`/supervisor/approve-log/${id}`)
 export const apiRejectLog = (id, d) => api.post(`/supervisor/reject-log/${id}`, d)
@@ -124,7 +123,7 @@ export const apiGetSupervisorInterns = () => api.get('/supervisor/interns')
 export const apiUpdateIntern = (id, d) => api.put(`/supervisor/interns/${id}`, d)
 export const apiSuspendIntern = (id) => api.delete(`/supervisor/interns/${id}`)
 
-// ── Intern ────────────────────────────────────────────────────────────────
+//  Intern 
 export const apiGetLogs = (params = {}) => api.get('/intern/logs', { params })
 export const apiCreateLog = (d) => api.post('/intern/logs', d)
 export const apiUpdateLog = (id, d) => api.put(`/intern/logs/${id}`, d)
@@ -136,13 +135,12 @@ export const apiUploadImage = (logId, file) => {
 }
 export const apiDeleteImage = (logId, imgId) => api.delete(`/intern/logs/${logId}/images/${imgId}`)
 
-// ── Geo (legacy) ──────────────────────────────────────────────────────────
-export const apiValidateLocation = (d) => api.post('/geo/validate', d)
+//  Geo (legacy) 
 export const apiAssessLogbook = (d) => api.post('/assess/logbook', d)
 
 export default api
 
-// ── Attendance & Attachment ────────────────────────────────────────────────
+//  Attendance & Attachment 
 export const apiGetPeriodStatus       = ()  => api.get('/attendance/period-status')
 export const apiGetAttachmentDates    = ()  => api.get('/attendance/dates')
 export const apiSetAttachmentDates    = (d) => api.put('/attendance/dates', d)
@@ -153,14 +151,45 @@ export const apiGetMyAbsences         = ()  => api.get('/attendance/absence')
 export const apiGetInternAbsences     = (internId) => api.get(`/attendance/absence/intern/${internId}`)
 export const apiAcknowledgeAbsence    = (id) => api.post(`/attendance/absence/${id}/acknowledge`)
 
-// ── Holidays ──────────────────────────────────────────────────────────────
+//  Holidays 
 export const apiGetHolidays           = (year) => api.get('/holidays', { params: year ? { year } : {} })
 export const apiAddHoliday            = (d) => api.post('/holidays', d)
 export const apiAddHolidayRange       = (d) => api.post('/holidays/range', d)
 export const apiDeleteHoliday         = (id) => api.delete(`/holidays/${id}`)
 
-// ── Pre-registration (admin bulk import) ─────────────────────────────────
+//  Pre-registration (admin bulk import) 
 export const apiDownloadTemplate    = () => api.get('/admin/preregister/template', { responseType: 'blob' })
 export const apiPreRegisterUpload   = (formData) => api.post('/admin/preregister/upload', formData, {
   headers: { 'Content-Type': 'multipart/form-data' },
 })
+
+// Clock In / Out
+export const apiClockIn  = (coords) => api.post('/attendance/clock-in',  coords)
+export const apiClockOut = (coords) => api.post('/attendance/clock-out', coords)
+export const apiGetTodayAttendance = () => api.get('/attendance/today')
+
+// Weekly Summary (Intern)
+export const apiCreateWeeklySummary  = (data)     => api.post('/weekly-summary', data)
+export const apiListWeeklySummaries  = (params)   => api.get('/weekly-summary', { params })
+export const apiGetWeeklySummary     = (id)       => api.get('/weekly-summary/' + id)
+export const apiUpdateWeeklySummary  = (id, data) => api.put('/weekly-summary/' + id, data)
+export const apiSubmitWeeklySummary  = (id)       => api.post('/weekly-summary/' + id + '/submit')
+
+// Weekly Summary (Supervisor)
+export const apiSupervisorListSummaries  = (params)   => api.get('/supervisor/weekly-summaries', { params })
+export const apiSupervisorReviewSummary  = (id, data) => api.post('/supervisor/weekly-summaries/' + id + '/review', data)
+
+// Weekly Summary (Lecturer)
+export const apiLecturerListSummaries = (params) => api.get('/lecturer/weekly-summaries', { params })
+
+// Weekly Summary (Admin)
+export const apiAdminListSummaries = (params) => api.get('/admin/weekly-summaries', { params })
+
+// Coordinator
+export const apiPromoteCoordinator  = (id) => api.post(`/admin/users/${id}/promote-coordinator`)
+export const apiDemoteCoordinator   = (id) => api.post(`/admin/users/${id}/demote-coordinator`)
+export const apiCoordinatorUsers    = (params) => api.get('/coordinator/users', { params })
+export const apiCoordinatorPending  = (params) => api.get('/coordinator/pending', { params })
+export const apiCoordinatorApprove  = (id) => api.post(`/coordinator/approve/${id}`)
+export const apiCoordinatorAssign   = (d) => api.post('/coordinator/assign-intern', d)
+export const apiCoordinatorLogs     = (params) => api.get('/coordinator/logs', { params })
