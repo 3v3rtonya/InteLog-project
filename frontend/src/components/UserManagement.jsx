@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
+import { useAuth } from '../App'
 import {
-  apiGetUsers, apiUpdateUser, apiDeleteUser,
-  apiCreateLecturer, apiCreateUser,
+  apiGetUsers, apiUpdateUser, apiDeleteUser, apiApproveUser,
+  apiCreateUser, apiPromoteCoordinator, apiDemoteCoordinator,
 } from '../services/api'
 import { useToast } from './Toast'
 import StatusBadge from './StatusBadge'
@@ -9,8 +10,9 @@ import ConfirmDialog from './ConfirmDialog'
 
 const STATUSES  = ['pending', 'active', 'suspended', 'waiting']
 const ROLES     = ['intern', 'supervisor', 'lecturer', 'admin']
+const SYSTEM_ADMIN = 'admin@mis.local'
 
-// ── small helper ──────────────────────────────────────────────────────────
+//  small helper 
 function Field({ label, children }) {
   return (
     <div className="form-group">
@@ -20,28 +22,35 @@ function Field({ label, children }) {
   )
 }
 
-// ── Create Lecturer modal ─────────────────────────────────────────────────
-function CreateLecturerModal({ onClose, onCreated }) {
+//  Create Lecturer modal 
+
+//  Promote Coordinator modal 
+function PromoteCoordinatorModal({ onClose, onCreated }) {
   const { showToast } = useToast()
-  const [form, setForm] = useState({
-    full_name: '', email: '', phone: '', password: '', school: '', department: '',
-  })
+  const [lecturers, setLecturers] = useState([])
+  const [selectedId, setSelectedId] = useState('')
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
 
-  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+  useEffect(() => {
+    apiGetUsers({ role: 'lecturer', status: 'active', page_size: 100 })
+      .then(r => setLecturers(r.data.items || []))
+      .catch(() => showToast('Failed to load lecturers', 'error'))
+      .finally(() => setFetching(false))
+  }, [])
 
-  const handleSubmit = async () => {
-    if (!form.full_name || !form.email || !form.password || !form.school || !form.department) {
-      showToast('All fields except phone are required', 'error'); return
-    }
+  const selected = lecturers.find(l => l.id === selectedId)
+
+  const handlePromote = async () => {
+    if (!selectedId) { showToast('Select a lecturer first', 'error'); return }
     setLoading(true)
     try {
-      await apiCreateLecturer(form)
-      showToast(`Lecturer ${form.full_name} created`, 'success')
+      await apiPromoteCoordinator(selectedId)
+      showToast(`${selected?.full_name} promoted to Coordinator`, 'success')
       onCreated()
       onClose()
     } catch (err) {
-      showToast(err.response?.data?.detail || 'Creation failed', 'error')
+      showToast(err.response?.data?.detail || 'Promotion failed', 'error')
     } finally { setLoading(false) }
   }
 
@@ -49,41 +58,43 @@ function CreateLecturerModal({ onClose, onCreated }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h3 className="modal-title">Create Lecturer Account</h3>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <h3 className="modal-title">Promote Lecturer to Coordinator</h3>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
-
-        <div className="alert alert-info" style={{ marginBottom: 12, fontSize: '0.82rem' }}>
-          The lecturer will log in using these credentials. Share the password securely.
+        <div className="alert alert-info" style={{marginBottom: 12, fontSize: '0.82rem'}}>
+          Coordinators deputize the admin — they can approve accounts, manage users in their school, and allocate interns. Role stays &quot;Lecturer&quot;.
         </div>
-
-        <Field label="Full Name *">
-          <input className="form-input" value={form.full_name} onChange={set('full_name')} placeholder="Dr. Jane Mwangi" />
-        </Field>
-        <Field label="Email *">
-          <input className="form-input" type="email" value={form.email} onChange={set('email')} placeholder="j.mwangi@dkut.ac.ke" />
-        </Field>
-        <Field label="Phone (optional)">
-          <input className="form-input" type="tel" value={form.phone} onChange={set('phone')} placeholder="+254712345678" />
-        </Field>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <Field label="School *">
-            <input className="form-input" value={form.school} onChange={set('school')} placeholder="School of Engineering" />
-          </Field>
-          <Field label="Department *">
-            <input className="form-input" value={form.department} onChange={set('department')} placeholder="Software Engineering" />
-          </Field>
-        </div>
-
-        <Field label="Temporary Password *">
-          <input className="form-input" type="password" value={form.password} onChange={set('password')} placeholder="Min 8 chars, uppercase + number + symbol" />
-        </Field>
-
+        {fetching ? (
+          <div className="spinner" style={{margin: '24px auto'}} />
+        ) : (
+          <>
+            <div className="form-group">
+              <label className="form-label">Select Active Lecturer</label>
+              <select
+                className="form-select"
+                value={selectedId}
+                onChange={e => setSelectedId(e.target.value)}
+              >
+                <option value="">-- choose a lecturer --</option>
+                {lecturers.filter(l => !l.is_coordinator).map(l => (
+                  <option key={l.id} value={l.id}>{l.full_name} — {l.school || 'No school'}</option>
+                ))}
+              </select>
+            </div>
+            {selected && (
+              <div className="card" style={{padding: '12px 16px', marginBottom: 12, fontSize: '0.85rem'}}>
+                <div><strong>Name:</strong> {selected.full_name}</div>
+                <div><strong>Email:</strong> {selected.email}</div>
+                <div><strong>School:</strong> {selected.school || '—'}</div>
+                <div><strong>Department:</strong> {selected.department || '—'}</div>
+              </div>
+            )}
+          </>
+        )}
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? <span className="spinner spinner-sm" /> : '+ Create Lecturer'}
+          <button className="btn btn-ghost" onClick={onClose} disabled={loading}>Cancel</button>
+          <button className="btn btn-primary" onClick={handlePromote} disabled={loading || !selectedId}>
+            {loading ? 'Promoting…' : 'Promote to Coordinator'}
           </button>
         </div>
       </div>
@@ -91,64 +102,10 @@ function CreateLecturerModal({ onClose, onCreated }) {
   )
 }
 
-// ── Create Admin modal ────────────────────────────────────────────────────
-function CreateAdminModal({ onClose, onCreated }) {
-  const { showToast } = useToast()
-  const [form, setForm] = useState({ full_name: '', email: '', phone: '', password: '' })
-  const [loading, setLoading] = useState(false)
-
-  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
-
-  const handleSubmit = async () => {
-    if (!form.full_name || !form.email || !form.password) {
-      showToast('Name, email and password are required', 'error'); return
-    }
-    setLoading(true)
-    try {
-      await apiCreateUser({ ...form, role: 'admin' })
-      showToast(`Admin ${form.full_name} created`, 'success')
-      onCreated()
-      onClose()
-    } catch (err) {
-      showToast(err.response?.data?.detail || 'Creation failed', 'error')
-    } finally { setLoading(false) }
-  }
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3 className="modal-title">Create Admin Account</h3>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
-        </div>
-
-        <Field label="Full Name *">
-          <input className="form-input" value={form.full_name} onChange={set('full_name')} placeholder="Admin Name" />
-        </Field>
-        <Field label="Email *">
-          <input className="form-input" type="email" value={form.email} onChange={set('email')} placeholder="admin@dkut.ac.ke" />
-        </Field>
-        <Field label="Phone (optional)">
-          <input className="form-input" type="tel" value={form.phone} onChange={set('phone')} placeholder="+254712345678" />
-        </Field>
-        <Field label="Temporary Password *">
-          <input className="form-input" type="password" value={form.password} onChange={set('password')} placeholder="Min 8 chars, uppercase + number + symbol" />
-        </Field>
-
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose} disabled={loading}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? <span className="spinner spinner-sm" /> : '+ Create Admin'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Main component ────────────────────────────────────────────────────────
+//  Main component 
 export default function UserManagement() {
   const { showToast } = useToast()
+  const { user: currentUser } = useAuth()
   const [users, setUsers]           = useState([])
   const [page, setPage]             = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -157,7 +114,6 @@ export default function UserManagement() {
   const [filters, setFilters]       = useState({ role: '', status: '', search: '' })
 
   const [editModal, setEditModal]         = useState(null)  // { user }
-  const [createLecturer, setCreateLecturer] = useState(false)
   const [createAdmin, setCreateAdmin]     = useState(false)
   const [deleteId, setDeleteId]           = useState(null)
 
@@ -178,7 +134,7 @@ export default function UserManagement() {
         setTotalPages(data.total_pages || 1)
         setPage(p)
       })
-      .catch(() => showToast('Failed to load users', 'error'))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }
 
@@ -212,6 +168,16 @@ export default function UserManagement() {
     }
   }
 
+  const handleApprove = async (userId, userName) => {
+    try {
+      await apiApproveUser(userId)
+      showToast(userName + ' approved and activated', 'success')
+      load(page)
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Approval failed', 'error')
+    }
+  }
+
   const handleDelete = async () => {
     try {
       await apiDeleteUser(deleteId)
@@ -220,6 +186,28 @@ export default function UserManagement() {
       load(page)
     } catch {
       showToast('Delete failed', 'error')
+    }
+  }
+
+  const handlePromoteCoordinator = async (id, name) => {
+    if (!window.confirm(`Promote ${name} to Coordinator?`)) return
+    try {
+      await apiPromoteCoordinator(id)
+      showToast(`${name} promoted to Coordinator`, 'success')
+      load(page)
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Promotion failed', 'error')
+    }
+  }
+
+  const handleDemoteCoordinator = async (id, name) => {
+    if (!window.confirm(`Remove Coordinator privileges from ${name}?`)) return
+    try {
+      await apiDemoteCoordinator(id)
+      showToast(`${name} is no longer a Coordinator`, 'success')
+      load(page)
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Demotion failed', 'error')
     }
   }
 
@@ -234,25 +222,20 @@ export default function UserManagement() {
           <p className="page-subtitle">{total} total users</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-primary btn-sm" onClick={() => setCreateLecturer(true)}>
-            + New Lecturer
-          </button>
           <button className="btn btn-secondary btn-sm" onClick={() => setCreateAdmin(true)}>
-            + New Admin
+            + New Coordinator
           </button>
         </div>
       </div>
 
       <div className="alert alert-info" style={{ marginBottom: 16, fontSize: '0.85rem' }}>
-        ℹ️ Interns and supervisors self-register via the <strong>Sign Up</strong> page using
-        their DeKUT Student ID. They appear here after registration and join the unassigned queue.
-        Lecturers and admins are created directly by you above.
+        Manage all user accounts. Promote active lecturers to Coordinators — they gain elevated privileges scoped to their school: approving accounts, managing users, and allocating interns. Role stays &quot;Lecturer&quot;.
       </div>
 
       {/* Filters */}
       <div className="filter-bar" style={{ marginBottom: 16 }}>
         <input
-          className="form-input" placeholder="Search name or email…"
+          className="form-input" placeholder="Search name or email..."
           value={filters.search} onChange={setFilter('search')}
           style={{ flex: 1 }}
         />
@@ -295,19 +278,46 @@ export default function UserManagement() {
                 <tr key={u.id}>
                   <td><strong>{u.full_name}</strong></td>
                   <td style={{ fontSize: '0.85rem' }}>{u.email}</td>
-                  <td><StatusBadge status={u.role} /></td>
+                  <td>
+                    <StatusBadge status={u.role} />
+                    {u.role === 'lecturer' && u.is_coordinator && (
+                      <span className="badge" style={{background: '#B7791F', color: '#fff', marginLeft: 4}}>Coordinator</span>
+                    )}
+                  </td>
                   <td style={{ fontSize: '0.8rem' }}>
                     {u.school
                       ? <><div>{u.school}</div><div style={{ color: 'var(--text-muted)' }}>{u.department}</div></>
-                      : <span style={{ color: 'var(--text-muted)' }}>—</span>
+                      : <span style={{ color: 'var(--text-muted)' }}>"</span>
                     }
                   </td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{u.student_id || '—'}</td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{u.student_id || '"'}</td>
                   <td><StatusBadge status={u.status} /></td>
                   <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {(u.status === 'pending' || u.status === 'waiting') && (
+                        <button className="btn btn-sm" style={{ background: '#16a34a', color: '#fff' }}
+                          onClick={() => handleApprove(u.id, u.full_name)}>
+                          Approve
+                        </button>
+                      )}
+                      {u.role === 'lecturer' && u.status === 'active' && !u.is_coordinator && (
+                        <button
+                          className="btn btn-xs btn-outline"
+                          title="Promote to Coordinator"
+                          onClick={() => handlePromoteCoordinator(u.id, u.full_name)}
+                        >Promote</button>
+                      )}
+                      {u.role === 'lecturer' && u.is_coordinator && (
+                        <button
+                          className="btn btn-xs btn-danger"
+                          title="Remove Coordinator"
+                          onClick={() => handleDemoteCoordinator(u.id, u.full_name)}
+                        >Remove Coord.</button>
+                      )}
                       <button className="btn btn-secondary btn-sm" onClick={() => openEdit(u)}>Edit</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => setDeleteId(u.id)}>Delete</button>
+                      {u.email !== SYSTEM_ADMIN && u.id !== currentUser?.id && (
+                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteId(u.id)}>Delete</button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -318,21 +328,21 @@ export default function UserManagement() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: 8, padding: 16 }}>
-              <button className="btn btn-outline btn-sm" disabled={page <= 1} onClick={() => load(page - 1)}>← Prev</button>
+              <button className="btn btn-outline btn-sm" disabled={page <= 1} onClick={() => load(page - 1)}>  Prev</button>
               <span style={{ lineHeight: '2rem', fontSize: '0.875rem' }}>Page {page} / {totalPages}</span>
-              <button className="btn btn-outline btn-sm" disabled={page >= totalPages} onClick={() => load(page + 1)}>Next →</button>
+              <button className="btn btn-outline btn-sm" disabled={page >= totalPages} onClick={() => load(page + 1)}>Next  </button>
             </div>
           )}
         </div>
       )}
 
-      {/* ── Edit modal ───────────────────────────────────────────────────── */}
+      {/*  Edit modal  */}
       {editModal && (
         <div className="modal-overlay" onClick={() => setEditModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">Edit — {editModal.user.full_name}</h3>
-              <button className="modal-close" onClick={() => setEditModal(null)}>×</button>
+              <h3 className="modal-title">Edit " {editModal.user.full_name}</h3>
+              <button className="modal-close" onClick={() => setEditModal(null)}></button>
             </div>
 
             <Field label="Full Name">
@@ -372,22 +382,16 @@ export default function UserManagement() {
         </div>
       )}
 
-      {/* ── Create modals ────────────────────────────────────────────────── */}
-      {createLecturer && (
-        <CreateLecturerModal
-          onClose={() => setCreateLecturer(false)}
-          onCreated={() => load(1)}
-        />
-      )}
+      {/*  Create modals  */}
 
       {createAdmin && (
-        <CreateAdminModal
+        <PromoteCoordinatorModal
           onClose={() => setCreateAdmin(false)}
           onCreated={() => load(1)}
         />
       )}
 
-      {/* ── Delete confirm ───────────────────────────────────────────────── */}
+      {/* -- Delete confirm --------------------------------------------------- */}
       <ConfirmDialog
         isOpen={!!deleteId}
         title="Delete User"
