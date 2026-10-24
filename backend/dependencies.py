@@ -123,3 +123,17 @@ def get_current_admin_or_lecturer(
             detail="Insufficient permissions",
         )
     return user
+
+
+def get_current_admin_or_coordinator(
+    user: User = Depends(get_current_user),
+) -> User:
+    """Admin OR an active lecturer with is_coordinator=True."""
+    if user.role == "admin":
+        return user
+    if user.role == "lecturer" and getattr(user, "is_coordinator", False):
+        return user
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Insufficient permissions",
+    )

@@ -1,4 +1,4 @@
-"""
+﻿"""
 admin.py - Admin portal routes.
 
 Permissions:
@@ -17,18 +17,21 @@ from uuid import UUID
 import math
 
 from backend.database import get_db
-from backend.models import User, LogbookEntry, SiteLocation, Notification, LecturerInternAssignment
+from backend.models import User, LogbookEntry, Notification, LecturerInternAssignment
 from backend.schemas import (
     UserResponse, UserCreateRequest, UserUpdateRequest,
-    LecturerCreateRequest, AssignInternRequest, BulkAssignInternRequest,
-    LogResponse, SiteLocationCreate, SiteLocationUpdate, SiteLocationResponse,
+AssignInternRequest, BulkAssignInternRequest,
+    LogResponse,
     RepairLinkRequest, LecturerInternAssignmentResponse,
 )
 from backend.services.auth_service import hash_password
-from backend.services.email_service import send_approval_email, send_lecturer_welcome_email
+from backend.services.email_service import send_approval_email
 from backend.dependencies import get_current_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+# The seeded system admin - protected from deletion and self-demotion
+SYSTEM_ADMIN_EMAIL = "admin@mis.local"
 
 
 def _notify(db, user_id, ntype, title, body, link_id=None, link_type=None):
@@ -38,7 +41,7 @@ def _notify(db, user_id, ntype, title, body, link_id=None, link_type=None):
     ))
 
 
-# ── Pending requests (unassigned — waiting for admin to assign to lecturer) ───
+#  Pending requests (unassigned  waiting for admin to assign to lecturer) 
 
 @router.get("/pending-requests")
 def get_pending_requests(
@@ -68,70 +71,7 @@ def get_pending_requests(
     }
 
 
-# ── Lecturer management ───────────────────────────────────────────────────────
-
-@router.post("/lecturers", response_model=UserResponse, status_code=201)
-def create_lecturer(
-    payload: LecturerCreateRequest,
-    db: Session = Depends(get_db),
-    admin: User = Depends(get_current_admin),
-):
-    """Admin creates a lecturer account and hands over credentials."""
-    if db.query(User).filter(User.email == payload.email).first():
-        raise HTTPException(409, "Email already registered")
-
-    lecturer = User(
-        email=payload.email,
-        password_hash=hash_password(payload.password),
-        full_name=payload.full_name,
-        phone=payload.phone,
-        role="lecturer",
-        status="active",   # pre-created by admin — active immediately
-        school=payload.school,
-        department=payload.department,
-    )
-    db.add(lecturer)
-    db.commit()
-    db.refresh(lecturer)
-
-    # Email the lecturer their credentials — fire-and-forget
-    send_lecturer_welcome_email(
-        user_email=lecturer.email,
-        user_name=lecturer.full_name,
-        school=lecturer.school or "",
-        department=lecturer.department or "",
-        temp_password=payload.password,
-    )
-
-    return lecturer
-
-
-@router.get("/lecturers")
-def get_lecturers(
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
-    search: Optional[str] = Query(None),
-    school: Optional[str] = Query(None),
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_admin),
-):
-    query = db.query(User).filter(User.role == "lecturer")
-    if school:
-        query = query.filter(User.school == school)
-    if search:
-        query = query.filter(
-            User.full_name.ilike(f"%{search}%") | User.email.ilike(f"%{search}%")
-        )
-    total = query.count()
-    lecturers = query.order_by(User.full_name).offset((page - 1) * page_size).limit(page_size).all()
-    return {
-        "items": [UserResponse.model_validate(u) for u in lecturers],
-        "total": total, "page": page, "page_size": page_size,
-        "total_pages": math.ceil(total / page_size) if total > 0 else 1,
-    }
-
-
-# ── Assign intern to lecturer ─────────────────────────────────────────────────
+#  Assign intern to lecturer 
 
 @router.post("/assign-intern", response_model=LecturerInternAssignmentResponse, status_code=201)
 def assign_intern_to_lecturer(
@@ -168,7 +108,7 @@ def assign_intern_to_lecturer(
     # Notify the lecturer
     _notify(
         db, lecturer.id, "new_signup",
-        f"Intern Assigned — {intern.full_name}",
+        f"Intern Assigned  {intern.full_name}",
         f"Admin has assigned intern {intern.full_name} "
         f"({intern.school} / {intern.department}) to your cohort.",
         link_id=intern.id, link_type="user",
@@ -214,7 +154,7 @@ def bulk_assign_interns(
 
         _notify(
             db, lecturer.id, "new_signup",
-            f"Intern Assigned — {intern.full_name}",
+            f"Intern Assigned  {intern.full_name}",
             f"Admin has assigned intern {intern.full_name} to your cohort.",
             link_id=intern.id, link_type="user",
         )
@@ -240,7 +180,7 @@ def unassign_intern(
     db.commit()
 
 
-# ── Repair link (admin override) ──────────────────────────────────────────────
+#  Repair link (admin override) 
 
 @router.post("/repair-link", response_model=UserResponse)
 def repair_link(
@@ -274,7 +214,7 @@ def repair_link(
     return intern
 
 
-# ── Users CRUD ────────────────────────────────────────────────────────────────
+#  Users CRUD 
 
 @router.get("/users")
 def get_users(
@@ -360,14 +300,94 @@ def delete_user(
 ):
     if user_id == admin.id:
         raise HTTPException(400, "Cannot delete your own account")
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
         raise HTTPException(404, "User not found")
-    db.delete(user)
+    if target.email == SYSTEM_ADMIN_EMAIL:
+        raise HTTPException(403, "The system administrator account cannot be deleted")
+    db.delete(target)
     db.commit()
 
 
-# ── All intern logs (admin view — system-wide) ────────────────────────────────
+
+
+
+
+# -- Approve any pending account (intern, supervisor, lecturer) -------------------
+
+@router.post("/users/{user_id}/approve", response_model=UserResponse)
+def approve_user(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
+):
+    """Admin activates any pending/waiting account."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    if user.status == "active":
+        raise HTTPException(400, "Account is already active")
+    user.status = "active"
+    db.commit()
+    db.refresh(user)
+    _notify(
+        db, user.id, "account_approved",
+        "Your account has been activated",
+        f"Your {user.role} account has been approved by the administrator. You can now log in.",
+        link_id=user.id, link_type="user",
+    )
+    db.commit()
+    return user
+
+
+@router.post("/users/{user_id}/promote-coordinator", response_model=UserResponse)
+def promote_coordinator(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
+):
+    """Promote an active lecturer to coordinator role."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    if user.role != "lecturer":
+        raise HTTPException(400, "Only lecturers can be promoted to coordinator")
+    if user.status != "active":
+        raise HTTPException(400, "User must be active to be promoted")
+    if user.is_coordinator:
+        raise HTTPException(400, "User is already a coordinator")
+    user.is_coordinator = True
+    db.commit()
+    db.refresh(user)
+    _notify(db, user.id, "coordinator_promoted",
+            "You have been promoted to Coordinator",
+            "You now have coordinator privileges. You can approve accounts, manage users in your school, and allocate interns.",
+            link_id=user.id, link_type="user")
+    db.commit()
+    return user
+
+
+@router.post("/users/{user_id}/demote-coordinator", response_model=UserResponse)
+def demote_coordinator(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
+):
+    """Remove coordinator privileges from a lecturer."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    if not user.is_coordinator:
+        raise HTTPException(400, "User is not a coordinator")
+    if user.email == SYSTEM_ADMIN_EMAIL:
+        raise HTTPException(403, "Cannot modify the system administrator")
+    user.is_coordinator = False
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+#  All intern logs (admin view  system-wide) 
 
 @router.get("/logs")
 def get_all_logs(
@@ -443,36 +463,3 @@ def get_flagged_logs(
         "total": total, "page": page, "page_size": page_size,
         "total_pages": math.ceil(total / page_size) if total > 0 else 1,
     }
-
-
-# ── Site locations (legacy) ───────────────────────────────────────────────────
-
-@router.get("/sites")
-def get_sites(db: Session = Depends(get_db), _: User = Depends(get_current_admin)):
-    return [SiteLocationResponse.model_validate(s) for s in db.query(SiteLocation).all()]
-
-
-@router.post("/sites", response_model=SiteLocationResponse, status_code=201)
-def create_site(payload: SiteLocationCreate, db: Session = Depends(get_db), _: User = Depends(get_current_admin)):
-    site = SiteLocation(**payload.model_dump())
-    db.add(site); db.commit(); db.refresh(site)
-    return site
-
-
-@router.put("/sites/{site_id}", response_model=SiteLocationResponse)
-def update_site(site_id: UUID, payload: SiteLocationUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_admin)):
-    site = db.query(SiteLocation).filter(SiteLocation.id == site_id).first()
-    if not site:
-        raise HTTPException(404, "Site not found")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(site, k, v)
-    db.commit(); db.refresh(site)
-    return site
-
-
-@router.delete("/sites/{site_id}", status_code=204)
-def delete_site(site_id: UUID, db: Session = Depends(get_db), _: User = Depends(get_current_admin)):
-    site = db.query(SiteLocation).filter(SiteLocation.id == site_id).first()
-    if not site:
-        raise HTTPException(404, "Site not found")
-    db.delete(site); db.commit()
