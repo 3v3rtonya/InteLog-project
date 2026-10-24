@@ -1,4 +1,4 @@
-"""
+﻿"""
 models.py - SQLAlchemy ORM models
 """
 import uuid
@@ -47,6 +47,7 @@ class User(Base):
     student_id_status= Column(String(20), default="unlinked")  # unlinked|linked|waiting
     school           = Column(String(100), nullable=True)
     department       = Column(String(100), nullable=True)
+    is_coordinator   = Column(Boolean, default=False, nullable=False)
     institution_id   = Column(UUID(as_uuid=True), ForeignKey("institutions.id", ondelete="SET NULL"), nullable=True)
 
     # ── Attachment period (interns only) ─────────────────────────
@@ -71,6 +72,10 @@ class User(Base):
                                     foreign_keys="LecturerInternAssignment.lecturer_id", cascade="all, delete-orphan")
     lecturer_assignment = relationship("LecturerInternAssignment", back_populates="intern",
                                        foreign_keys="LecturerInternAssignment.intern_id", uselist=False)
+    attendance_records = relationship("AttendanceRecord", back_populates="intern",
+                                      foreign_keys="AttendanceRecord.intern_id", cascade="all, delete-orphan")
+    weekly_summaries   = relationship("WeeklySummary", back_populates="intern",
+                                      foreign_keys="WeeklySummary.intern_id", cascade="all, delete-orphan")
 
 
 # ── Lecturer ↔ Intern assignment ───────────────────────────────────────────────
@@ -223,19 +228,6 @@ class Notification(Base):
     user = relationship("User", back_populates="notifications")
 
 
-# ── Legacy ─────────────────────────────────────────────────────────────────────
-
-class SiteLocation(Base):
-    __tablename__ = "site_locations"
-
-    id            = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name          = Column(String(255), nullable=False)
-    latitude      = Column(Float, nullable=False)
-    longitude     = Column(Float, nullable=False)
-    radius_meters = Column(Integer, nullable=False, default=200)
-    is_active     = Column(Boolean, default=True)
-
-
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 
@@ -264,7 +256,7 @@ class WeeklySummary(Base):
     reviewed_at         = Column(DateTime(timezone=True), nullable=True)
     created_at          = Column(DateTime(timezone=True), default=_now)
 
-    intern     = relationship("User", foreign_keys=[intern_id])
+    intern     = relationship("User", back_populates="weekly_summaries", foreign_keys=[intern_id])
     supervisor = relationship("User", foreign_keys=[supervisor_id])
 
 # ── Attendance (Clock In/Out) ──────────────────────────────────────────────────
@@ -279,8 +271,10 @@ class AttendanceRecord(Base):
     clock_out_time     = Column(DateTime(timezone=True), nullable=True)
     clock_in_location  = Column(Text, nullable=True) # json string of lat/long
     clock_out_location = Column(Text, nullable=True) # json string of lat/long
+    is_onsite          = Column(Boolean, default=False, nullable=False)
+    is_onsite          = Column(Boolean, default=False, nullable=False)
     created_at         = Column(DateTime(timezone=True), default=_now)
 
     __table_args__ = (UniqueConstraint("intern_id", "date", name="uq_attendance_intern_date"),)
 
-    intern = relationship("User", foreign_keys=[intern_id])
+    intern = relationship("User", back_populates="attendance_records", foreign_keys=[intern_id])

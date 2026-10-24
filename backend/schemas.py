@@ -1,4 +1,4 @@
-"""
+﻿"""
 schemas.py - Pydantic schemas for request/response validation.
 """
 from pydantic import BaseModel, field_validator, ConfigDict, Field
@@ -33,10 +33,10 @@ def _strong_password(v: str) -> str:
     return p
 
 
-# ─── Auth ─────────────────────────────────────────────────────────────────────
+#  Auth 
 
 class InternSignupRequest(BaseModel):
-    """Intern registration — includes student_id, school, department, phone (required)."""
+    """Intern registration  includes student_id, school, department, phone (required)."""
     model_config = ConfigDict(str_strip_whitespace=True)
 
     full_name: str
@@ -67,7 +67,7 @@ class InternSignupRequest(BaseModel):
             raise ValueError("Phone number is required")
         import re
         if not re.match(r'^\+?\d{7,15}$', s):
-            raise ValueError("Phone must be 7–15 digits, optionally starting with +")
+            raise ValueError("Phone must be 715 digits, optionally starting with +")
         return s
 
     @field_validator("student_id", mode="before")
@@ -76,7 +76,7 @@ class InternSignupRequest(BaseModel):
         s = str(v).strip().upper()
         if not _STUDENT_ID_RE.match(s):
             raise ValueError(
-                "Invalid Student ID. Must be 4–20 alphanumeric characters (letters, numbers, /, -, _)."
+                "Invalid Student ID. Must be 420 alphanumeric characters (letters, numbers, /, -, _)."
             )
         return s
 
@@ -94,7 +94,7 @@ class InternSignupRequest(BaseModel):
 
 
 class SupervisorSignupRequest(BaseModel):
-    """Supervisor registration — includes student_id of intern they supervise, school, department."""
+    """Supervisor registration  includes student_id of intern they supervise, school, department."""
     model_config = ConfigDict(str_strip_whitespace=True)
 
     full_name: str
@@ -102,8 +102,8 @@ class SupervisorSignupRequest(BaseModel):
     phone: Optional[str] = None
     password: str
     student_id: str
-    school: str
-    department: str
+    school: Optional[str] = None
+    department: Optional[str] = None
 
     @field_validator("email", mode="before")
     @classmethod
@@ -123,16 +123,16 @@ class SupervisorSignupRequest(BaseModel):
         s = str(v).strip().upper()
         if not _STUDENT_ID_RE.match(s):
             raise ValueError(
-                "Invalid Student ID. Must be 4–20 alphanumeric characters (letters, numbers, /, -, _)."
+                "Invalid Student ID. Must be 420 alphanumeric characters (letters, numbers, /, -, _)."
             )
         return s
 
-    @field_validator("school", "department", mode="before")
-    @classmethod
-    def v_nonempty_str(cls, v):
-        s = str(v).strip()
-        if not s:
-            raise ValueError("This field is required")
+
+
+
+
+
+
         return s
 
     @field_validator("password", mode="before")
@@ -140,8 +140,44 @@ class SupervisorSignupRequest(BaseModel):
     def v_password(cls, v): return _strong_password(v)
 
 
+
+class LecturerSignupRequest(BaseModel):
+    """Lecturer self-registration - school and department required."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    full_name: str
+    email: str
+    phone: Optional[str] = None
+    password: str
+    school: Optional[str] = None
+    department: Optional[str] = None
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def v_email(cls, v): return _norm_email(v)
+
+    @field_validator("full_name", mode="before")
+    @classmethod
+    def v_name(cls, v):
+        s = str(v).strip()
+        if len(s) < 2:
+            raise ValueError("Full name must be at least 2 characters")
+        return s
+
+
+
+
+
+
+
+        return s
+
+    @field_validator("password", mode="before")
+    @classmethod
+    def v_password(cls, v): return _strong_password(v)
+
 class SignupRequest(BaseModel):
-    """Generic signup — used for admin-created accounts."""
+    """Generic signup  used for admin-created accounts."""
     model_config = ConfigDict(str_strip_whitespace=True)
     full_name: str
     email: str
@@ -186,7 +222,7 @@ class TokenResponse(BaseModel):
     user: "UserResponse"
 
 
-# ─── Users ────────────────────────────────────────────────────────────────────
+#  Users 
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -204,6 +240,7 @@ class UserResponse(BaseModel):
     student_id_status: Optional[str] = None
     school: Optional[str] = None
     department: Optional[str] = None
+    is_coordinator: bool = False
     created_at: datetime
 
 
@@ -235,42 +272,6 @@ class UserCreateRequest(BaseModel):
         if len(str(v)) < 8:
             raise ValueError("Password must be at least 8 characters")
         return str(v)
-
-
-class LecturerCreateRequest(BaseModel):
-    """Admin creates a lecturer account with school/dept required."""
-    model_config = ConfigDict(str_strip_whitespace=True)
-    full_name: str
-    email: str
-    phone: Optional[str] = None
-    password: str
-    school: str
-    department: str
-
-    @field_validator("email", mode="before")
-    @classmethod
-    def v_email(cls, v): return _norm_email(v)
-
-    @field_validator("full_name", mode="before")
-    @classmethod
-    def v_name(cls, v):
-        s = str(v).strip()
-        if len(s) < 2:
-            raise ValueError("Full name must be at least 2 characters")
-        return s
-
-    @field_validator("school", "department", mode="before")
-    @classmethod
-    def v_nonempty_str(cls, v):
-        s = str(v).strip()
-        if not s:
-            raise ValueError("This field is required")
-        return s
-
-    @field_validator("password", mode="before")
-    @classmethod
-    def v_password(cls, v): return _strong_password(v)
-
 
 class UserUpdateRequest(BaseModel):
     full_name: Optional[str] = None
@@ -342,7 +343,7 @@ class BulkAssignInternRequest(BaseModel):
     lecturer_id: UUID
 
 
-# ─── Logbook ──────────────────────────────────────────────────────────────────
+#  Logbook 
 
 class LogbookBase(BaseModel):
     entry_date: date
@@ -450,7 +451,7 @@ class RejectLogRequest(BaseModel):
         return s
 
 
-# ─── Lecturer assignment response ─────────────────────────────────────────────
+#  Lecturer assignment response 
 
 class LecturerInternAssignmentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -462,7 +463,7 @@ class LecturerInternAssignmentResponse(BaseModel):
     intern: Optional[UserResponse] = None
 
 
-# ─── Geofence ─────────────────────────────────────────────────────────────────
+#  Geofence 
 
 class GeofencePinRequest(BaseModel):
     """Supervisor pins or re-pins their office location."""
@@ -497,7 +498,7 @@ class GeoValidateResponse(BaseModel):
     message: str
 
 
-# ─── Notifications ────────────────────────────────────────────────────────────
+#  Notifications 
 
 class NotificationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -511,35 +512,7 @@ class NotificationResponse(BaseModel):
     created_at: datetime
 
 
-# ─── Site locations (legacy) ──────────────────────────────────────────────────
-
-class SiteLocationCreate(BaseModel):
-    name: str
-    latitude: float
-    longitude: float
-    radius_meters: int = 200
-    is_active: bool = True
-
-
-class SiteLocationUpdate(BaseModel):
-    name: Optional[str] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    radius_meters: Optional[int] = None
-    is_active: Optional[bool] = None
-
-
-class SiteLocationResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: UUID
-    name: str
-    latitude: float
-    longitude: float
-    radius_meters: int
-    is_active: bool
-
-
-# ─── Pagination ───────────────────────────────────────────────────────────────
+#  Pagination 
 
 class PaginatedResponse(BaseModel):
     items: list
@@ -549,7 +522,7 @@ class PaginatedResponse(BaseModel):
     total_pages: int
 
 
-# ─── Attachment period ────────────────────────────────────────────────────────
+#  Attachment period 
 
 class AttachmentDatesRequest(BaseModel):
     attachment_start: date
@@ -572,7 +545,7 @@ class AttachmentDatesResponse(BaseModel):
     changes_remaining: int = 3
 
 
-# ─── Absence requests ─────────────────────────────────────────────────────────
+#  Absence requests 
 
 class AbsenceRequestCreate(BaseModel):
     date: date
@@ -610,7 +583,7 @@ class AbsenceRequestResponse(BaseModel):
     intern: Optional["UserResponse"] = None
 
 
-# ─── Non-working days ─────────────────────────────────────────────────────────
+#  Non-working days 
 
 class NonWorkingDayCreate(BaseModel):
     date: date
@@ -659,7 +632,7 @@ class NonWorkingDayResponse(BaseModel):
     created_at: datetime
 
 
-# ─── Attendance stats ─────────────────────────────────────────────────────────
+#  Attendance stats 
 
 class DayStatus(BaseModel):
     """Status of a single calendar day for the heatmap."""
@@ -683,7 +656,7 @@ class AttendanceStats(BaseModel):
     days_calendar: List[DayStatus] = []
 
 
-# ─── Pre-registration (CSV bulk import) ──────────────────────────────────────
+#  Pre-registration (CSV bulk import) 
 
 class PreRegisterRowResult(BaseModel):
     """Result for a single CSV row during bulk import."""
@@ -705,3 +678,57 @@ class PreRegisterImportResponse(BaseModel):
     lecturers_created: int
     assignments_created: int
     rows: List[PreRegisterRowResult]
+
+
+# ── Attendance (Clock In/Out) ──────────────────────────────────────────────────
+
+class ClockInRequest(BaseModel):
+    latitude: float
+    longitude: float
+
+class AttendanceRecordResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    intern_id: UUID
+    date: date
+    clock_in_time: Optional[datetime] = None
+    clock_out_time: Optional[datetime] = None
+    clock_in_location: Optional[str] = None
+    clock_out_location: Optional[str] = None
+    is_onsite: bool = False
+    created_at: datetime
+
+
+# ── Weekly Summary ─────────────────────────────────────────────────────────────
+
+class WeeklySummaryCreate(BaseModel):
+    summary_text: str = Field(..., min_length=10)
+
+class WeeklySummaryUpdate(BaseModel):
+    summary_text: str = Field(..., min_length=10)
+
+class WeeklySummaryReviewRequest(BaseModel):
+    feedback: str
+    decision: str  # "approved" or "rejected"
+
+    @field_validator("decision", mode="before")
+    @classmethod
+    def v_decision(cls, v):
+        if str(v) not in ("approved", "rejected"):
+            raise ValueError("Decision must be 'approved' or 'rejected'")
+        return str(v)
+
+class WeeklySummaryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    intern_id: UUID
+    supervisor_id: Optional[UUID] = None
+    week_start_date: date
+    week_end_date: date
+    summary_text: str
+    supervisor_feedback: Optional[str] = None
+    status: str
+    submitted_at: Optional[datetime] = None
+    reviewed_at: Optional[datetime] = None
+    created_at: datetime
+    intern: Optional["UserResponse"] = None
