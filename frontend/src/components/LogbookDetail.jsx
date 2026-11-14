@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { apiGetLog } from '../services/api'
 import StatusBadge from './StatusBadge'
@@ -12,7 +12,7 @@ export default function LogbookDetail() {
 
   const getUploadUrl = (path) => {
     const filename = path?.split(/[/\\]/).pop()
-    return filename ? `/uploads/${filename}` : ''
+    return filename ? `/api/uploads/${filename}` : ''
   }
 
   useEffect(() => {

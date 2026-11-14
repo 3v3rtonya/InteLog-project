@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { apiGetAttendanceStats } from '../services/api'
-import { useToast } from './Toast'
 import { CheckCircle, Clock, Stethoscope, Sun, AlertTriangle, Clock4, HelpCircle, Timer, Calendar as CalendarIcon, CalendarDays } from 'lucide-react'
 
 /**
@@ -79,7 +78,6 @@ function ProgressBar({ label, value, total, color, bg }) {
 }
 
 export default function AttendanceCalendar({ internId = null, compact = false }) {
-  const { showToast } = useToast()
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [viewYear, setViewYear] = useState(null)
@@ -96,7 +94,7 @@ export default function AttendanceCalendar({ internId = null, compact = false })
           setViewMonth(d.getMonth())
         }
       })
-      .catch(() => showToast('Failed to load attendance', 'error'))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [internId])
 

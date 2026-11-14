@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { apiGetAllLogs, apiGetAdminLog, apiGetUsers } from '../services/api'
 import { useToast } from './Toast'
 import StatusBadge from './StatusBadge'
@@ -32,7 +32,7 @@ export default function AdminLogsView() {
       setTotal(data.total || 0)
       setTotalPages(data.total_pages || 1)
       setPage(p)
-    }).catch(() => showToast('Failed to load logs', 'error')).finally(() => setLoading(false))
+    }).catch(() => {}).finally(() => setLoading(false))
   }
 
   useEffect(() => { load(1) }, [filters])
@@ -80,7 +80,7 @@ export default function AdminLogsView() {
         <div className="spinner-center"><div className="spinner spinner-md" /></div>
       ) : logs.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📋</div>
+          <div className="empty-state-icon"></div>
           <div className="empty-state-title">No logs found</div>
         </div>
       ) : (
@@ -100,11 +100,11 @@ export default function AdminLogsView() {
               <tbody>
                 {logs.map(log => (
                   <tr key={log.id}>
-                    <td style={{ fontWeight: 500 }}>{log.intern?.full_name || '—'}</td>
+                    <td style={{ fontWeight: 500 }}>{log.intern?.full_name || ''}</td>
                     <td>{log.entry_date}</td>
                     <td><StatusBadge status={log.status} /></td>
-                    <td>{log.is_onsite ? '✅' : '❌'}</td>
-                    <td>{log.is_flagged ? <span style={{ color: '#F59E0B' }}>⚠️ {log.flag_reason?.slice(0, 30)}</span> : '—'}</td>
+                    <td>{log.is_onsite ? '' : ''}</td>
+                    <td>{log.is_flagged ? <span style={{ color: '#F59E0B' }}> {log.flag_reason?.slice(0, 30)}</span> : ''}</td>
                     <td>
                       <button className="btn btn-secondary btn-sm" onClick={() => openDetail(log)}>
                         View
@@ -116,11 +116,11 @@ export default function AdminLogsView() {
             </table>
           </div>
           <div className="pagination">
-            <button className="page-btn" disabled={page <= 1} onClick={() => load(page - 1)}>‹</button>
+            <button className="page-btn" disabled={page <= 1} onClick={() => load(page - 1)}></button>
             {Array.from({ length: totalPages }, (_, i) => (
               <button key={i + 1} className={'page-btn' + (page === i + 1 ? ' active' : '')} onClick={() => load(i + 1)}>{i + 1}</button>
             ))}
-            <button className="page-btn" disabled={page >= totalPages} onClick={() => load(page + 1)}>›</button>
+            <button className="page-btn" disabled={page >= totalPages} onClick={() => load(page + 1)}></button>
           </div>
         </>
       )}
@@ -135,21 +135,21 @@ export default function AdminLogsView() {
               <>
                 <div className="modal-header">
                   <div>
-                    <h3 className="modal-title">Log — {selected.entry_date}</h3>
+                    <h3 className="modal-title">Log  {selected.entry_date}</h3>
                     <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
                       <StatusBadge status={selected.status} />
                       {selected.is_onsite
-                        ? <span style={{ color: 'var(--brand-green)', fontSize: '0.8rem' }}>✅ On-site</span>
-                        : <span style={{ color: '#EF4444', fontSize: '0.8rem' }}>❌ Off-site</span>}
-                      {selected.is_flagged && <span style={{ color: '#F59E0B', fontSize: '0.8rem' }}>⚠️ Flagged</span>}
+                        ? <span style={{ color: 'var(--brand-green)', fontSize: '0.8rem' }}> On-site</span>
+                        : <span style={{ color: '#EF4444', fontSize: '0.8rem' }}> Off-site</span>}
+                      {selected.is_flagged && <span style={{ color: '#F59E0B', fontSize: '0.8rem' }}> Flagged</span>}
                     </div>
                   </div>
-                  <button className="modal-close" onClick={() => setSelected(null)}>×</button>
+                  <button className="modal-close" onClick={() => setSelected(null)}></button>
                 </div>
 
                 <div style={{ marginBottom: 12 }}>
-                  <strong>Intern:</strong> {selected.intern?.full_name || '—'} &nbsp;|&nbsp;
-                  <strong>Student ID:</strong> {selected.intern?.student_id || '—'}
+                  <strong>Intern:</strong> {selected.intern?.full_name || ''} &nbsp;|&nbsp;
+                  <strong>Student ID:</strong> {selected.intern?.student_id || ''}
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
@@ -167,7 +167,7 @@ export default function AdminLogsView() {
                 </div>
 
                 {selected.flag_reason && (
-                  <div className="alert alert-warning">⚠️ {selected.flag_reason}</div>
+                  <div className="alert alert-warning"> {selected.flag_reason}</div>
                 )}
 
                 {selected.images?.length > 0 && (
@@ -176,7 +176,7 @@ export default function AdminLogsView() {
                     <div className="image-gallery">
                       {selected.images.map(img => (
                         <img key={img.id} className="gallery-img"
-                          src={`/uploads/${img.file_path.split(/[\\/]/).pop()}`}
+                          src={`/api/uploads/${img.file_path.split(/[\\/]/).pop()}`}
                           alt={img.original_filename} />
                       ))}
                     </div>

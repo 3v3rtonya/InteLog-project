@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useToast } from './Toast'
 import { apiSetAttachmentDates } from '../services/api'
 
@@ -55,7 +55,7 @@ export default function AttachmentDateModal({ changesRemaining = 3, onSaved }) {
       }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>📋</div>
+          <div style={{ fontSize: '2.5rem', marginBottom: 8 }}></div>
           <h2 style={{ color: 'var(--text-primary)', marginBottom: 4 }}>
             {isFirstTime ? 'Set Your Attachment Period' : 'Update Attachment Dates'}
           </h2>
@@ -104,7 +104,7 @@ export default function AttachmentDateModal({ changesRemaining = 3, onSaved }) {
             {(() => {
               const days = Math.round((new Date(endDate) - new Date(startDate)) / 86400000)
               const weeks = Math.floor(days / 7)
-              return `${days} calendar days · ~${weeks} weeks`
+              return `${days} calendar days  ~${weeks} weeks`
             })()}
           </div>
         )}
@@ -115,7 +115,7 @@ export default function AttachmentDateModal({ changesRemaining = 3, onSaved }) {
             background: '#FFF3CD', border: '1px solid #FFD700', borderRadius: 'var(--radius)',
             padding: '10px 14px', marginBottom: 20, fontSize: '0.82rem', color: '#856404',
           }}>
-            ⚠️ After {changesRemaining} more change{changesRemaining !== 1 ? 's' : ''}, only your supervisor can update these dates.
+             After {changesRemaining} more change{changesRemaining !== 1 ? 's' : ''}, only your supervisor can update these dates.
           </div>
         )}
 
@@ -125,7 +125,7 @@ export default function AttachmentDateModal({ changesRemaining = 3, onSaved }) {
           disabled={loading || !startDate || !endDate}
           style={{ fontSize: '1rem', padding: '12px' }}
         >
-          {loading ? <span className="spinner spinner-sm" /> : '💾 Save Attachment Dates'}
+          {loading ? <span className="spinner spinner-sm" /> : ' Save Attachment Dates'}
         </button>
       </div>
     </div>

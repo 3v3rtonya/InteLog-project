@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { apiGetMyGeofence, apiPinGeofence } from '../services/api'
 import { useToast } from './Toast'
 
@@ -121,7 +121,7 @@ export default function GeofencePin() {
 
           <div className="form-group">
             <label className="form-label">GPS Coordinates *</label>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <input className="form-input" style={{ flex: 1, minWidth: 120 }} value={form.latitude} onChange={e => setForm(f => ({ ...f, latitude: e.target.value }))} placeholder="Latitude" />
               <input className="form-input" style={{ flex: 1, minWidth: 120 }} value={form.longitude} onChange={e => setForm(f => ({ ...f, longitude: e.target.value }))} placeholder="Longitude" />
               <button type="button" className="btn btn-secondary" onClick={getLocation} disabled={locating}>

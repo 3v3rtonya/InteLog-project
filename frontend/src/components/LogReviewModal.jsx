@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { apiApproveLog, apiRejectLog } from '../services/api'
 import { useToast } from './Toast'
 import StatusBadge from './StatusBadge'
@@ -7,10 +7,10 @@ import StatusBadge from './StatusBadge'
  * LogReviewModal
  *
  * Props:
- *   log      — the log entry object
- *   onClose  — called when the modal should close
- *   onAction — optional callback after approve/reject (receives updated log status)
- *   readOnly — if true, hides approve/reject buttons (used by lecturer view)
+ *   log       the log entry object
+ *   onClose   called when the modal should close
+ *   onAction  optional callback after approve/reject (receives updated log status)
+ *   readOnly  if true, hides approve/reject buttons (used by lecturer view)
  */
 export default function LogReviewModal({ log, onClose, onAction, readOnly = false }) {
   const { showToast } = useToast()
@@ -22,7 +22,7 @@ export default function LogReviewModal({ log, onClose, onAction, readOnly = fals
     setLoading(true)
     try {
       await apiApproveLog(log.id)
-      showToast('Log approved successfully ✅', 'success')
+      showToast('Log approved successfully ', 'success')
       onAction?.('approved')
       onClose()
     } catch (err) {
@@ -57,19 +57,19 @@ export default function LogReviewModal({ log, onClose, onAction, readOnly = fals
         {/* Header */}
         <div className="modal-header">
           <h3 className="modal-title">
-            {readOnly ? 'Log Entry' : 'Review Log'} — {log.entry_date}
+            {readOnly ? 'Log Entry' : 'Review Log'}  {log.entry_date}
           </h3>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
 
         {/* Status chips */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
           <StatusBadge status={log.status} />
           {log.is_onsite
-            ? <span style={{ color: 'var(--brand-green)', fontSize: '0.875rem' }}>✅ On-site</span>
-            : <span style={{ color: '#EF4444', fontSize: '0.875rem' }}>❌ Off-site</span>}
+            ? <span style={{ color: 'var(--brand-green)', fontSize: '0.875rem' }}> On-site</span>
+            : <span style={{ color: '#EF4444', fontSize: '0.875rem' }}> Off-site</span>}
           {log.is_flagged && (
-            <span style={{ color: '#F59E0B', fontSize: '0.875rem' }}>⚠️ {log.flag_reason}</span>
+            <span style={{ color: '#F59E0B', fontSize: '0.875rem' }}> {log.flag_reason}</span>
           )}
         </div>
 
@@ -86,7 +86,7 @@ export default function LogReviewModal({ log, onClose, onAction, readOnly = fals
               </span>
             )}
             {log.intern.department && (
-              <span style={{ marginLeft: 8, color: 'var(--text-muted)' }}>· {log.intern.department}</span>
+              <span style={{ marginLeft: 8, color: 'var(--text-muted)' }}> {log.intern.department}</span>
             )}
           </div>
         )}
@@ -128,7 +128,7 @@ export default function LogReviewModal({ log, onClose, onAction, readOnly = fals
                 <img
                   key={img.id}
                   className="gallery-img"
-                  src={`/uploads/${img.file_path?.split(/[/\\]/).pop()}`}
+                  src={`/api/uploads/${img.file_path?.split(/[/\\]/).pop()}`}
                   alt={img.original_filename || 'Evidence photo'}
                 />
               ))}
@@ -136,7 +136,7 @@ export default function LogReviewModal({ log, onClose, onAction, readOnly = fals
           </div>
         )}
 
-        {/* Footer — supervisor actions or read-only close */}
+        {/* Footer  supervisor actions or read-only close */}
         {readOnly ? (
           <div className="modal-footer">
             <button className="btn btn-secondary" onClick={onClose}>Close</button>
@@ -149,7 +149,7 @@ export default function LogReviewModal({ log, onClose, onAction, readOnly = fals
                   Reject
                 </button>
                 <button className="btn btn-primary" onClick={handleApprove} disabled={loading}>
-                  {loading ? <span className="spinner spinner-sm" /> : '✅ Approve'}
+                  {loading ? <span className="spinner spinner-sm" /> : ' Approve'}
                 </button>
               </div>
             )}
@@ -168,7 +168,7 @@ export default function LogReviewModal({ log, onClose, onAction, readOnly = fals
                     className="form-textarea"
                     value={rejectReason}
                     onChange={e => setRejectReason(e.target.value)}
-                    placeholder="Explain why this log is being returned to the intern…"
+                    placeholder="Explain why this log is being returned to the intern"
                     rows={3}
                   />
                 </div>

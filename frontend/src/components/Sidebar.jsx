@@ -77,7 +77,7 @@ export default function Sidebar() {
   }
   const roleLabel = user.role === 'lecturer' && user.is_coordinator ? 'Coordinator' : (ROLE_LABEL[user.role] ?? user.role)
   const showLabels = mobileOpen || !collapsed
-  console.log('[Sidebar] mobileOpen=', mobileOpen, 'collapsed=', collapsed)
+
   const sidebarClass = ['sidebar', collapsed && !mobileOpen ? 'collapsed' : '', mobileOpen ? 'mobile-open' : ''].filter(Boolean).join(' ')
 
   return (
@@ -85,7 +85,7 @@ export default function Sidebar() {
       <div className={`sidebar-backdrop${mobileOpen ? ' visible' : ''}`} onClick={close} aria-hidden="true" />
       <aside className={sidebarClass} style={{ position: 'relative' }}>
         <button className='sidebar-toggle' onClick={() => setCollapsed(c => !c)}
-          style={{ position:'absolute', right:-12, top:24, background:'#CC0000', border:'2px solid #CC0000',
+          style={{ position:'absolute', right:-12, top:24, background:'#006400', border:'2px solid #FFD700',
             borderRadius:'50%', width:24, height:24, display:'flex', alignItems:'center', justifyContent:'center',
             cursor:'pointer', zIndex:10, color:'#ffffff', boxShadow:'0 0 0 3px rgba(204,0,0,0.2)', flexShrink:0 }}>
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}

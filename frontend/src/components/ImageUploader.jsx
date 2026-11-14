@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+﻿import { useState, useRef } from 'react'
 import { apiUploadImage, apiDeleteImage } from '../services/api'
 import { useToast } from './Toast'
 
@@ -14,7 +14,7 @@ export default function ImageUploader({ logId }) {
   const upload = async (file) => {
     if (images.length >= MAX) { showToast(`Maximum ${MAX} images allowed`, 'error'); return }
     if (!['image/jpeg', 'image/jpg'].includes(file.type)) { showToast('Only JPEG images are allowed', 'error'); return }
-    if (file.size > MAX_SIZE) { showToast('Image must be ≤ 5MB', 'error'); return }
+    if (file.size > MAX_SIZE) { showToast('Image must be  5MB', 'error'); return }
     try {
       const { data } = await apiUploadImage(logId, file)
       setImages(prev => [...prev, { ...data, preview: URL.createObjectURL(file) }])
@@ -44,8 +44,8 @@ export default function ImageUploader({ logId }) {
           onDragLeave={() => setDragging(false)}
           onDrop={e => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files) }}
         >
-          📎 Drag & drop JPEG images here, or click to browse
-          <br /><span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{images.length}/{MAX} images • Max 5MB each</span>
+           Drag & drop JPEG images here, or click to browse
+          <br /><span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{images.length}/{MAX} images  Max 5MB each</span>
           <input ref={inputRef} type="file" accept="image/jpeg,image/jpg" multiple style={{ display: 'none' }} onChange={e => handleFiles(e.target.files)} />
         </div>
       )}
@@ -53,8 +53,8 @@ export default function ImageUploader({ logId }) {
         <div className="image-previews">
           {images.map(img => (
             <div key={img.id} className="image-preview">
-              <img src={img.preview || `/uploads/${img.file_path?.split(/[/\\]/).pop()}`} alt={img.original_filename} />
-              <button className="image-preview-remove" onClick={() => remove(img)}>×</button>
+              <img src={img.preview || `/api/uploads/${img.file_path?.split(/[/\\]/).pop()}`} alt={img.original_filename} />
+              <button className="image-preview-remove" onClick={() => remove(img)}></button>
             </div>
           ))}
         </div>

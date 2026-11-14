@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { apiCreateLog, apiUpdateLog, apiGetLog, apiAssessLogbook } from '../services/api'
+import { apiCreateLog, apiUpdateLog, apiGetLog, apiGetLogs, apiAssessLogbook } from '../services/api'
 import { useToast } from './Toast'
-import GeolocationCapture from './GeolocationCapture'
 import ImageUploader from './ImageUploader'
 import PIIScrubPreview from './PIIScrubPreview'
 import { AlertTriangle, Lightbulb, Save, Send, Wand2 } from 'lucide-react'
+import useAutosave from '../hooks/useAutosave'
 
 export default function LogbookEntryForm() {
   const navigate = useNavigate()
@@ -28,27 +28,50 @@ export default function LogbookEntryForm() {
   const [assessment, setAssessment] = useState(null)
   const [assessing, setAssessing] = useState(false)
 
-  // Load existing draft when editing
+  const { saveStatus, savedAt } = useAutosave(form, logId, setLogId, loading)
+  const [pendingDraft, setPendingDraft] = useState(null)
+
+  // Load existing draft when editing, or resume today's draft in new-entry mode
   useEffect(() => {
-    if (!id) return
-    apiGetLog(id)
-      .then(({ data }) => {
-        if (data.status !== 'draft') {
-          showToast('Only draft entries can be edited', 'error')
-          navigate('/intern/logs')
-          return
-        }
-        setForm({
-          entry_date: data.entry_date,
-          activities_performed: data.activities_performed,
-          solutions_offered: data.solutions_offered,
-          problems_encountered: data.problems_encountered || '',
-          lessons_learned: data.lessons_learned || '',
+    if (id) {
+      // Edit mode — load the specific draft by id
+      apiGetLog(id)
+        .then(({ data }) => {
+          if (data.status !== 'draft') {
+            showToast('Only draft entries can be edited', 'error')
+            navigate('/intern/logs')
+            return
+          }
+          setForm({
+            entry_date: data.entry_date,
+            activities_performed: data.activities_performed,
+            solutions_offered: data.solutions_offered,
+            problems_encountered: data.problems_encountered || '',
+            lessons_learned: data.lessons_learned || '',
+          })
+          setLogId(data.id)
         })
-        setLogId(data.id)
-      })
-      .catch(() => { showToast('Failed to load entry', 'error'); navigate('/intern/logs') })
-      .finally(() => setFetching(false))
+        .catch(() => { showToast('Failed to load entry', 'error'); navigate('/intern/logs') })
+        .finally(() => setFetching(false))
+    } else {
+      // New entry mode: check for an existing draft for today and resume it
+      apiGetLogs({ status: 'draft', date_from: today, date_to: today, page_size: 1 })
+        .then(({ data }) => {
+          const drafts = data.items || []
+          if (drafts.length > 0) {
+            const d = drafts[0]
+            setForm({
+              entry_date: d.entry_date,
+              activities_performed: d.activities_performed,
+              solutions_offered: d.solutions_offered,
+              problems_encountered: d.problems_encountered || '',
+              lessons_learned: d.lessons_learned || '',
+            })
+            setLogId(d.id)
+          }
+        })
+        .catch(() => {})  // silent — if check fails just show blank form
+    }
   }, [id])
 
   const set = (k) => (e) => {
@@ -56,8 +79,25 @@ export default function LogbookEntryForm() {
     if (errors[k]) setErrors((prev) => ({ ...prev, [k]: '' }))
   }
 
+  const handleDateChange = (e) => {
+    const newDate = e.target.value
+    setForm((f) => ({ ...f, entry_date: newDate }))
+    if (errors.entry_date) setErrors((prev) => ({ ...prev, entry_date: '' }))
+    // Check for an existing draft on the new date (only in new-entry mode)
+    if (!id && newDate) {
+      apiGetLogs({ status: 'draft', date_from: newDate, date_to: newDate, page_size: 1 })
+        .then(({ data }) => {
+          const drafts = data.items || []
+          if (drafts.length > 0 && drafts[0].id !== logId) {
+            setPendingDraft(drafts[0])
+          }
+        })
+        .catch(() => {})
+    }
+  }
+
   const countWords = (text) => text.trim() === '' ? 0 : text.trim().split(/\s+/).length
-  const MAX_WORDS = 250
+  const MAX_WORDS = 500
   const totalWords = countWords(form.activities_performed) + 
                      countWords(form.solutions_offered) +
                      countWords(form.problems_encountered) +
@@ -161,10 +201,31 @@ export default function LogbookEntryForm() {
             className="form-input"
             type="date"
             value={form.entry_date}
-            onChange={set('entry_date')}
+            onChange={handleDateChange}
             max={today}
           />
           {errors.entry_date && <span className="form-error">{errors.entry_date}</span>}
+          {pendingDraft && (
+            <div className="alert alert-info" style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.88rem' }}>
+                A draft exists for {pendingDraft.entry_date} — load it?
+              </span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-primary btn-sm" type="button" onClick={() => {
+                  setForm({
+                    entry_date: pendingDraft.entry_date,
+                    activities_performed: pendingDraft.activities_performed,
+                    solutions_offered: pendingDraft.solutions_offered,
+                    problems_encountered: pendingDraft.problems_encountered || '',
+                    lessons_learned: pendingDraft.lessons_learned || '',
+                  })
+                  setLogId(pendingDraft.id)
+                  setPendingDraft(null)
+                }}>Load Draft</button>
+                <button className="btn btn-outline btn-sm" type="button" onClick={() => setPendingDraft(null)}>Dismiss</button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Activities */}
@@ -306,6 +367,23 @@ export default function LogbookEntryForm() {
             Cancel
           </button>
         </div>
+
+        {/* Autosave status indicator */}
+        {saveStatus === 'saving' && (
+          <div style={{ marginTop: 8, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            Saving…
+          </div>
+        )}
+        {saveStatus === 'saved' && savedAt && (
+          <div style={{ marginTop: 8, fontSize: '0.78rem', color: '#16a34a' }}>
+            Saved ✓ {savedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </div>
+        )}
+        {saveStatus === 'error' && (
+          <div style={{ marginTop: 8, fontSize: '0.78rem', color: 'var(--danger, #dc2626)' }}>
+            Autosave failed
+          </div>
+        )}
       </div>
     </div>
   )

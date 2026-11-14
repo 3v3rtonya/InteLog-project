@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+﻿import { useState, useEffect, useRef, useCallback } from 'react'
 import { apiGetNotifications, apiGetUnreadCount, apiMarkRead, apiMarkAllRead } from '../services/api'
 import { useNavigate } from 'react-router-dom'
 import { Bell, User, ClipboardList, CheckCircle, XCircle, AlertTriangle, Link2, Ban } from 'lucide-react'
@@ -93,7 +93,7 @@ export default function NotificationBell() {
       {/* Dropdown */}
       {open && (
         <div style={{
-          position: 'absolute', right: 0, top: 44, width: 360,
+          position: 'fixed', right: 8, top: 64, width: 'min(360px, calc(100vw - 16px))',
           background: 'var(--bg-card)', border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)',
           zIndex: 200, overflow: 'hidden',
@@ -184,7 +184,7 @@ export default function NotificationBell() {
               <h3 className="modal-title">
                 {ICONS[selected.type] || <Bell size={16} />} {selected.title}
               </h3>
-              <button className="modal-close" onClick={() => setSelected(null)}>×</button>
+              <button className="modal-close" onClick={() => setSelected(null)}></button>
             </div>
             <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 16 }}>
               {selected.body}

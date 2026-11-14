@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+﻿import { useState, useEffect, useCallback } from 'react'
 import { apiGetPendingLinks, apiApproveLecturerLink, apiGetUsers } from '../services/api'
 import { useToast } from './Toast'
 import StatusBadge from './StatusBadge'
@@ -37,7 +37,7 @@ export default function LecturerPendingLinks() {
           setSupervisors(supMap)
         }
       })
-      .catch(() => showToast('Failed to load pending approvals', 'error'))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [page])
 

@@ -5,7 +5,7 @@
       <div className="modal confirm-dialog" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3 className="modal-title">{title}</h3>
-          <button className="modal-close" onClick={onCancel}>×</button>
+          <button className="modal-close" onClick={onCancel}></button>
         </div>
         <p className="confirm-message">{message}</p>
         <div className="modal-footer">

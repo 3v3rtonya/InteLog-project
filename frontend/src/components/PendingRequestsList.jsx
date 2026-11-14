@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { apiGetPendingRequests } from '../services/api'
 import { useToast } from './Toast'
 import AssignSupervisorModal from './AssignSupervisorModal'
@@ -22,7 +22,7 @@ export default function PendingRequestsList() {
         setTotal(data.total || 0)
         setPage(p)
       })
-      .catch(() => showToast('Failed to load', 'error'))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }
 

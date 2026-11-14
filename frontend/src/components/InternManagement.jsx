@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import {
   apiGetSupervisorInterns, apiUpdateIntern, apiSuspendIntern,
   apiSupervisorSetDates, apiGetInternAbsences,
@@ -104,10 +104,10 @@ export default function InternManagement() {
   }
 
   const ABSENCE_LABELS = {
-    sick:      '🤒 Sick',
-    day_off:   '🏖️ Day Off',
-    emergency: '⚠️ Emergency',
-    half_day:  '🕛 Half Day',
+    sick:      ' Sick',
+    day_off:   ' Day Off',
+    emergency: ' Emergency',
+    half_day:  ' Half Day',
   }
 
   return (
@@ -123,7 +123,7 @@ export default function InternManagement() {
         <div className="spinner-center"><div className="spinner spinner-md" /></div>
       ) : interns.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">👥</div>
+          <div className="empty-state-icon"></div>
           <div className="empty-state-title">No interns assigned</div>
         </div>
       ) : (
@@ -145,15 +145,15 @@ export default function InternManagement() {
                     <div><strong>{intern.full_name}</strong></div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{intern.email}</div>
                   </td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{intern.student_id || '—'}</td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{intern.student_id || ''}</td>
                   <td style={{ fontSize: '0.82rem' }}>
                     {intern.attachment_start ? (
                       <>
                         <div>{intern.attachment_start}</div>
-                        <div style={{ color: 'var(--text-muted)' }}>→ {intern.attachment_end}</div>
+                        <div style={{ color: 'var(--text-muted)' }}> {intern.attachment_end}</div>
                       </>
                     ) : (
-                      <span style={{ color: '#EF4444', fontSize: '0.78rem' }}>⚠️ Not set</span>
+                      <span style={{ color: '#EF4444', fontSize: '0.78rem' }}> Not set</span>
                     )}
                   </td>
                   <td><StatusBadge status={intern.status} /></td>
@@ -161,10 +161,10 @@ export default function InternManagement() {
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <button className="btn btn-secondary btn-sm" onClick={() => openEdit(intern)}>Edit</button>
                       <button className="btn btn-outline btn-sm" onClick={() => openDates(intern)}>
-                        📅 Dates
+                         Dates
                       </button>
                       <button className="btn btn-outline btn-sm" onClick={() => openAttendance(intern)}>
-                        📊 Attendance
+                         Attendance
                       </button>
                       {intern.status !== 'suspended' && (
                         <button className="btn btn-danger btn-sm" onClick={() => setSuspendId(intern.id)}>
@@ -180,13 +180,13 @@ export default function InternManagement() {
         </div>
       )}
 
-      {/* ── Edit intern modal ──────────────────────────────────── */}
+      {/*  Edit intern modal  */}
       {editing && (
         <div className="modal-overlay" onClick={() => setEditing(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">Edit — {editing.full_name}</h3>
-              <button className="modal-close" onClick={() => setEditing(null)}>×</button>
+              <h3 className="modal-title">Edit  {editing.full_name}</h3>
+              <button className="modal-close" onClick={() => setEditing(null)}></button>
             </div>
             <div className="form-group">
               <label className="form-label">Full Name</label>
@@ -206,13 +206,13 @@ export default function InternManagement() {
         </div>
       )}
 
-      {/* ── Attachment dates modal ─────────────────────────────── */}
+      {/*  Attachment dates modal  */}
       {datesModal && (
         <div className="modal-overlay" onClick={() => setDatesModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
             <div className="modal-header">
-              <h3 className="modal-title">Attachment Dates — {datesModal.intern.full_name}</h3>
-              <button className="modal-close" onClick={() => setDatesModal(null)}>×</button>
+              <h3 className="modal-title">Attachment Dates  {datesModal.intern.full_name}</h3>
+              <button className="modal-close" onClick={() => setDatesModal(null)}></button>
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 16 }}>
               As supervisor you can update these dates without limit.
@@ -242,7 +242,7 @@ export default function InternManagement() {
         </div>
       )}
 
-      {/* ── Attendance drawer ──────────────────────────────────── */}
+      {/*  Attendance drawer  */}
       {attendanceIntern && (
         <>
           <div
@@ -258,10 +258,10 @@ export default function InternManagement() {
               <div>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{attendanceIntern.full_name}</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                  {attendanceIntern.department} · {attendanceIntern.student_id}
+                  {attendanceIntern.department}  {attendanceIntern.student_id}
                 </p>
               </div>
-              <button className="modal-close" style={{ fontSize: '1.4rem' }} onClick={() => setAttendanceIntern(null)}>×</button>
+              <button className="modal-close" style={{ fontSize: '1.4rem' }} onClick={() => setAttendanceIntern(null)}></button>
             </div>
 
             {/* Attendance calendar */}

@@ -250,6 +250,7 @@ class WeeklySummary(Base):
     week_end_date       = Column(Date, nullable=False)
     summary_text        = Column(Text, nullable=False)
     supervisor_feedback = Column(Text, nullable=True)
+    supervisor_grade    = Column(Integer, nullable=True)
     status              = Column(String(20), nullable=False, default="draft")  # draft|pending|approved|rejected
     
     submitted_at        = Column(DateTime(timezone=True), nullable=True)
@@ -271,7 +272,7 @@ class AttendanceRecord(Base):
     clock_out_time     = Column(DateTime(timezone=True), nullable=True)
     clock_in_location  = Column(Text, nullable=True) # json string of lat/long
     clock_out_location = Column(Text, nullable=True) # json string of lat/long
-    is_onsite          = Column(Boolean, default=False, nullable=False)
+    clock_in_count     = Column(Integer, default=0, nullable=False)  # max 3 clock-ins per day
     is_onsite          = Column(Boolean, default=False, nullable=False)
     created_at         = Column(DateTime(timezone=True), default=_now)
 

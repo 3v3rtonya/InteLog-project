@@ -1,4 +1,4 @@
-"""
+﻿"""
 auth.py - Authentication routes including intern/supervisor signup with
 Student ID auto-linking, profile management, and password change.
 """
@@ -9,9 +9,9 @@ from uuid import UUID
 import secrets, os, uuid as _uuid
 
 from backend.database import get_db, get_db_status
-from backend.models import User, Notification, PasswordResetToken
+from backend.models import User, Notification, PasswordResetToken, LogbookEntry
 from backend.schemas import (
-    InternSignupRequest, SupervisorSignupRequest,
+    InternSignupRequest, SupervisorSignupRequest, LecturerSignupRequest,
     LoginRequest, TokenResponse, UserResponse, GoogleAuthRequest,
     ProfileUpdateRequest, PasswordChangeRequest,
 )
@@ -73,7 +73,7 @@ def _notify_lecturers_for_intern(db: Session, intern: User, ntype: str,
         _notify(db, lec.id, ntype, title, body, link_id, link_type)
 
 
-# ── Intern Signup ─────────────────────────────────────────────────────────────
+#  Intern Signup 
 
 @router.post("/signup/intern", response_model=UserResponse, status_code=201)
 def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
@@ -83,18 +83,18 @@ def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
     Two paths:
     A) Shell account exists for this student_id (pre-registered by admin):
        - Merge: apply password, phone, email, school, dept to the shell account
-       - Status: shell → pending
-       - Lecturer assignment already set by admin — no queue step needed
+       - Status: shell  pending
+       - Lecturer assignment already set by admin  no queue step needed
        - Notify assigned lecturer that the student has registered
 
     B) No shell account (student not pre-registered):
        - Create new intern account as before (status=pending)
        - Admin assigns to lecturer from unassigned queue
     """
-    # ── Email uniqueness check ────────────────────────────────────────────
+    #  Email uniqueness check 
     existing_email = db.query(User).filter(User.email == payload.email).first()
 
-    # ── Look for a shell account by student_id ────────────────────────────
+    #  Look for a shell account by student_id 
     shell = db.query(User).filter(
         User.student_id == payload.student_id,
         User.role == "intern",
@@ -102,7 +102,7 @@ def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
     ).first()
 
     if shell:
-        # ── PATH A: Merge with shell ──────────────────────────────────────
+        #  PATH A: Merge with shell 
         # Email check: if payload email differs from shell placeholder, verify unique
         if payload.email != shell.email:
             if existing_email and existing_email.id != shell.id:
@@ -114,12 +114,12 @@ def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
         shell.phone          = payload.phone
         shell.school         = payload.school or shell.school
         shell.department     = payload.department or shell.department
-        shell.status         = "pending"
+        shell.status         = "active"
         shell.student_id_status = "unlinked"
         intern = shell
 
     else:
-        # ── PATH B: Fresh registration ────────────────────────────────────
+        #  PATH B: Fresh registration 
         if existing_email:
             raise HTTPException(409, "An account with this email already exists")
 
@@ -136,7 +136,7 @@ def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
             full_name=payload.full_name,
             phone=payload.phone,
             role="intern",
-            status="pending",
+            status="active",
             student_id=payload.student_id,
             student_id_status="unlinked",
             school=payload.school,
@@ -146,11 +146,11 @@ def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
 
     db.flush()
 
-    # ── Supervisor auto-link (same for both paths) ────────────────────────
+    #  Supervisor auto-link (same for both paths) 
     waiting_supervisor = db.query(User).filter(
         User.role == "supervisor",
         User.student_id == payload.student_id,
-        User.status == "waiting",
+        User.status.in_(["active", "waiting"]),
     ).first()
 
     if waiting_supervisor:
@@ -158,14 +158,14 @@ def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
         intern.student_id_status = "linked"
         waiting_supervisor.student_id_status = "linked"
 
-    # ── Notifications ─────────────────────────────────────────────────────
+    #  Notifications 
     if shell and intern.lecturer_assignment:
         # Pre-registered: notify the already-assigned lecturer
         lec_id = intern.lecturer_assignment.lecturer_id
         if waiting_supervisor:
             _notify(
                 db, lec_id, "new_signup",
-                f"Student Registered & Supervisor Linked — {payload.student_id}",
+                f"Student Registered & Supervisor Linked  {payload.student_id}",
                 f"{intern.full_name} ({intern.school} / {intern.department}) has registered "
                 f"and been auto-linked to supervisor {waiting_supervisor.full_name}. "
                 f"Pending your approval.",
@@ -174,7 +174,7 @@ def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
         else:
             _notify(
                 db, lec_id, "new_signup",
-                f"Student Registered — {intern.full_name}",
+                f"Student Registered  {intern.full_name}",
                 f"{intern.full_name} ({intern.school} / {intern.department}) has registered "
                 f"on the system. Their supervisor has not linked yet.",
                 link_id=intern.id, link_type="user",
@@ -183,17 +183,17 @@ def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
         if waiting_supervisor:
             _notify_all_admins(
                 db, "new_signup",
-                f"Intern & Supervisor Linked — {payload.student_id}",
+                f"Intern & Supervisor Linked  {payload.student_id}",
                 f"{intern.full_name} and {waiting_supervisor.full_name} are linked. "
                 f"Assigned to lecturer for approval.",
                 link_id=intern.id, link_type="user",
             )
     else:
-        # Not pre-registered — notify admins to queue for assignment
+        # Not pre-registered  notify admins to queue for assignment
         if waiting_supervisor:
             _notify_all_admins(
                 db, "new_signup",
-                f"New Intern & Supervisor Linked — {payload.student_id}",
+                f"New Intern & Supervisor Linked  {payload.student_id}",
                 f"Intern {intern.full_name} ({intern.school} / {intern.department}) and "
                 f"Supervisor {waiting_supervisor.full_name} have been auto-linked via "
                 f"Student ID {payload.student_id}. Assign to a lecturer and approve.",
@@ -202,7 +202,7 @@ def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
         else:
             _notify_all_admins(
                 db, "new_signup",
-                f"New Intern Registered — {payload.student_id}",
+                f"New Intern Registered  {payload.student_id}",
                 f"{intern.full_name} ({intern.school} / {intern.department}) has registered "
                 f"as an intern. Assign to a lecturer once their supervisor links up.",
                 link_id=intern.id, link_type="user",
@@ -215,7 +215,7 @@ def signup_intern(payload: InternSignupRequest, db: Session = Depends(get_db)):
     return intern
 
 
-# ── Supervisor Signup ─────────────────────────────────────────────────────────
+#  Supervisor Signup 
 
 @router.post("/signup/supervisor", response_model=UserResponse, status_code=201)
 def signup_supervisor(payload: SupervisorSignupRequest, db: Session = Depends(get_db)):
@@ -231,6 +231,13 @@ def signup_supervisor(payload: SupervisorSignupRequest, db: Session = Depends(ge
         User.student_id == payload.student_id,
     ).first()
     if existing_sup:
+        _notify_all_admins(
+            db, "duplicate_signup",
+            f"Duplicate Supervisor Signup Attempt — {payload.student_id}",
+            f"{payload.email} attempted to register as a supervisor for Student ID "
+            f"{payload.student_id}, but {existing_sup.full_name} is already registered "
+            f"for that Student ID.",
+        )
         raise HTTPException(409, "Another supervisor has already registered with this Student ID")
 
     supervisor = User(
@@ -239,9 +246,9 @@ def signup_supervisor(payload: SupervisorSignupRequest, db: Session = Depends(ge
         full_name=payload.full_name,
         phone=payload.phone,
         role="supervisor",
-        status="waiting",
+        status = "active",
         student_id=payload.student_id,
-        student_id_status="waiting",
+        student_id_status = "unlinked",
         school=payload.school,
         department=payload.department,
     )
@@ -251,15 +258,21 @@ def signup_supervisor(payload: SupervisorSignupRequest, db: Session = Depends(ge
     intern = db.query(User).filter(
         User.role == "intern",
         User.student_id == payload.student_id,
+        User.status.in_(["active", "pending", "shell"]),
     ).first()
 
     if intern:
         intern.supervisor_id = supervisor.id
         intern.student_id_status = "linked"
         supervisor.student_id_status = "linked"
+        db.query(LogbookEntry).filter(
+            LogbookEntry.intern_id == intern.id,
+            LogbookEntry.supervisor_id == None,
+            LogbookEntry.status == "draft",
+        ).update({"supervisor_id": supervisor.id})
         _notify_all_admins(
             db, "new_signup",
-            f"New Intern & Supervisor Linked — {payload.student_id}",
+            f"New Intern & Supervisor Linked  {payload.student_id}",
             f"Supervisor {supervisor.full_name} has been auto-linked to intern "
             f"{intern.full_name} ({intern.school} / {intern.department}) via "
             f"Student ID {payload.student_id}. Assign to a lecturer and approve.",
@@ -269,7 +282,7 @@ def signup_supervisor(payload: SupervisorSignupRequest, db: Session = Depends(ge
         if intern.lecturer_assignment:
             _notify(
                 db, intern.lecturer_assignment.lecturer_id, "new_signup",
-                f"Supervisor Linked — {intern.full_name}",
+                f"Supervisor Linked  {intern.full_name}",
                 f"A supervisor ({supervisor.full_name}) has been linked to your intern "
                 f"{intern.full_name}. Pending your approval.",
                 link_id=intern.id, link_type="user",
@@ -277,7 +290,7 @@ def signup_supervisor(payload: SupervisorSignupRequest, db: Session = Depends(ge
     else:
         _notify_all_admins(
             db, "new_signup",
-            f"New Supervisor Registered — {payload.student_id}",
+            f"New Supervisor Registered  {payload.student_id}",
             f"{supervisor.full_name} registered as supervisor for Student ID "
             f"{payload.student_id}. Awaiting intern registration.",
             link_id=supervisor.id, link_type="user",
@@ -286,13 +299,53 @@ def signup_supervisor(payload: SupervisorSignupRequest, db: Session = Depends(ge
     db.commit()
     db.refresh(supervisor)
 
-    # Fire-and-forget welcome email — non-blocking
+    # Fire-and-forget welcome email  non-blocking
     send_welcome_email(supervisor.email, supervisor.full_name, "supervisor")
 
     return supervisor
 
 
-# ── Login ─────────────────────────────────────────────────────────────────────
+
+
+# -- Lecturer Self-Signup -------------------------------------------------------
+
+@router.post("/signup/lecturer", response_model=UserResponse, status_code=201)
+def signup_lecturer(payload: LecturerSignupRequest, db: Session = Depends(get_db)):
+    """
+    Lecturer self-registers.
+    Account created with status='pending' - admin must activate it.
+    Admins notified immediately to action it.
+    """
+    if db.query(User).filter(User.email == payload.email).first():
+        raise HTTPException(409, "An account with this email already exists")
+
+    lecturer = User(
+        email=payload.email,
+        password_hash=hash_password(payload.password),
+        full_name=payload.full_name,
+        phone=payload.phone,
+        role="lecturer",
+        status="pending",
+        school=payload.school,
+        department=payload.department,
+    )
+    db.add(lecturer)
+    db.flush()
+
+    _notify_all_admins(
+        db, "new_signup",
+        f"New Lecturer Registered -- {payload.full_name}",
+        f"{payload.full_name} ({payload.school} / {payload.department}) has self-registered "
+        f"as a lecturer. Please review and activate their account.",
+        link_id=lecturer.id, link_type="user",
+    )
+
+    db.commit()
+    db.refresh(lecturer)
+    send_welcome_email(lecturer.email, lecturer.full_name, "lecturer")
+    return lecturer
+
+#  Login 
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
@@ -322,7 +375,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     return TokenResponse(access_token=access_token, user=UserResponse.model_validate(user))
 
 
-# ── Google OAuth ──────────────────────────────────────────────────────────────
+#  Google OAuth 
 
 @router.post("/google", response_model=TokenResponse)
 async def google_auth(payload: GoogleAuthRequest, response: Response, db: Session = Depends(get_db)):
@@ -374,7 +427,7 @@ async def google_auth(payload: GoogleAuthRequest, response: Response, db: Sessio
     return TokenResponse(access_token=access_token, user=UserResponse.model_validate(user))
 
 
-# ── Logout / Me / Refresh ─────────────────────────────────────────────────────
+#  Logout / Me / Refresh 
 
 @router.post("/logout")
 def logout(response: Response, current_user: User = Depends(get_current_user)):
@@ -414,7 +467,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
     return TokenResponse(access_token=new_access, user=UserResponse.model_validate(user))
 
 
-# ── Profile Management ────────────────────────────────────────────────────────
+#  Profile Management 
 
 @router.put("/profile", response_model=UserResponse)
 def update_profile(
@@ -447,7 +500,7 @@ async def upload_avatar(
 
     content = await file.read()
     if len(content) > 5 * 1024 * 1024:
-        raise HTTPException(400, "Avatar must be ≤ 5MB")
+        raise HTTPException(400, "Avatar must be  5MB")
 
     os.makedirs(AVATAR_DIR, exist_ok=True)
     ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "jpg"
@@ -484,7 +537,7 @@ def change_password(
     return {"message": "Password changed successfully"}
 
 
-# ── Password Reset ────────────────────────────────────────────────────────────
+#  Password Reset 
 
 @router.post("/forgot-password")
 async def forgot_password(request: Request, db: Session = Depends(get_db)):

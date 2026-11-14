@@ -184,6 +184,7 @@ export default function App() {
               <Route path="/intern/logs" element={<ProtectedRoute roles={['intern']}><AppLayout><LogbookList /></AppLayout></ProtectedRoute>} />
               <Route path="/intern/logs/new" element={<ProtectedRoute roles={['intern']}><AppLayout><LogbookEntryForm /></AppLayout></ProtectedRoute>} />
               <Route path="/intern/logs/:id" element={<ProtectedRoute roles={['intern']}><AppLayout><LogbookDetail /></AppLayout></ProtectedRoute>} />
+              <Route path="/intern/logs/:id/edit" element={<ProtectedRoute roles={['intern']}><AppLayout><LogbookEntryForm /></AppLayout></ProtectedRoute>} />
               <Route path="/intern/attendance" element={<ProtectedRoute roles={['intern']}><AppLayout><InternAttendancePage /></AppLayout></ProtectedRoute>} />
 
               {/* Supervisor */}

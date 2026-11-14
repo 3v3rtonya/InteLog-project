@@ -1,4 +1,4 @@
-"""
+﻿"""
 lecturer.py - Lecturer portal routes.
 
 Permissions:
@@ -144,11 +144,20 @@ def approve_intern_link(
         raise HTTPException(404, "Linked supervisor not found")
 
     # Activate both
-    intern.status = "active"
-    intern.student_id_status = "linked"
-    supervisor.status = "active"
-    supervisor.student_id_status = "linked"
+    # Intern and Supervisor are already active (since signup refactor)
+    # Just notify them they have been assigned to a cohort
 
+
+
+    _notify(db, intern.id, "cohort_assigned",
+        "You have been assigned to a cohort!",
+        f"Your intern account has been accepted into lecturer {current_user.full_name}'s cohort.",
+        link_id=intern.id, link_type="user")
+    if intern.supervisor_id:
+        _notify(db, intern.supervisor_id, "cohort_assigned",
+            "Your intern has been assigned to a cohort!",
+            f"Intern {intern.full_name} has been accepted into lecturer {current_user.full_name}'s cohort.",
+            link_id=intern.id, link_type="user")
     db.commit()
     db.refresh(intern)
     db.refresh(supervisor)

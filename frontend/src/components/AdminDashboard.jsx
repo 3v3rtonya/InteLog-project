@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { apiGetPendingRequests, apiGetUsers, apiGetFlaggedLogs, apiGetLecturers } from '../services/api'
+import { apiGetPendingRequests, apiGetUsers, apiGetFlaggedLogs } from '../services/api'
 import StatusBadge from './StatusBadge'
 import { Inbox, Hourglass, GraduationCap, Briefcase, School, AlertTriangle } from 'lucide-react'
 
@@ -16,7 +16,7 @@ export default function AdminDashboard() {
       apiGetPendingRequests(1),
       apiGetUsers({ role: 'intern', status: 'active', page_size: 1 }),
       apiGetUsers({ role: 'supervisor', status: 'active', page_size: 1 }),
-      apiGetLecturers({ page_size: 1 }),
+      apiGetUsers({ role: 'lecturer', page_size: 1 }),
       apiGetFlaggedLogs(1),
     ]).then(([pending, interns, supervisors, lecturers, flagged]) => {
       setStats({
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
                 <div key={u.id} style={{ padding: '8px 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.875rem' }}>
                   <strong>{u.full_name}</strong>
                   <span style={{ color: 'var(--text-muted)', marginLeft: 6, textTransform: 'capitalize' }}>{u.role}</span>
-                  {u.school && <span style={{ color: 'var(--text-muted)', marginLeft: 6, fontSize: '0.78rem' }}>· {u.school}</span>}
+                  {u.school && <span style={{ color: 'var(--text-muted)', marginLeft: 6, fontSize: '0.78rem' }}>. {u.school}</span>}
                 </div>
               ))
           }

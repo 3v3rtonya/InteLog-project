@@ -13,7 +13,9 @@ FILLER_PHRASES = [
 ]
 
 # Maximum word count per combined log entry (activities + solutions)
-MAX_WORD_COUNT = 250
+# 500 words gives interns reasonable room for a detailed daily log
+# while still flagging padded/copy-pasted submissions.
+MAX_WORD_COUNT = 500
 
 # Minimum vocabulary diversity ratio (unique words / total words)
 MIN_DIVERSITY_RATIO = 0.4

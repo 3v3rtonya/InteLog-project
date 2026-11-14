@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { apiGetFlaggedLogs } from '../services/api'
 import { useToast } from './Toast'
 import StatusBadge from './StatusBadge'
@@ -18,7 +18,7 @@ export default function FlaggedLogsList() {
       setTotal(data.total || 0)
       setTotalPages(data.total_pages || 1)
       setPage(p)
-    }).catch(() => showToast('Failed to load', 'error')).finally(() => setLoading(false))
+    }).catch(() => {}).finally(() => setLoading(false))
   }
 
   useEffect(() => { load(1) }, [])

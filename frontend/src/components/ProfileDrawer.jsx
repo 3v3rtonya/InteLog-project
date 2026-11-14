@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+﻿import { useState, useRef } from 'react'
 import { useAuth } from '../App'
 import { apiUpdateProfile, apiUploadAvatar, apiChangePassword } from '../services/api'
 import { useToast } from './Toast'
@@ -33,7 +33,7 @@ export default function ProfileDrawer({ onClose }) {
       showToast('Only JPEG, PNG, or WebP images allowed', 'error'); return
     }
     if (file.size > 5 * 1024 * 1024) {
-      showToast('Image must be ≤ 5MB', 'error'); return
+      showToast('Image must be  5MB', 'error'); return
     }
     setAvatarFile(file)
     setAvatarPreview(URL.createObjectURL(file))
@@ -54,7 +54,7 @@ export default function ProfileDrawer({ onClose }) {
         email: form.email.trim(),
         phone: form.phone.trim() || null,
       })
-      // Refresh user in context — keep existing token
+      // Refresh user in context  keep existing token
       const token = sessionStorage.getItem('access_token')
       login({ access_token: token, user: data })
       showToast('Profile updated successfully', 'success')
@@ -98,7 +98,7 @@ export default function ProfileDrawer({ onClose }) {
 
       {/* Drawer */}
       <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, width: 400,
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: 'min(400px, 100vw)',
         background: 'var(--bg-card)', boxShadow: '-4px 0 24px rgba(0,0,0,0.15)',
         zIndex: 901, display: 'flex', flexDirection: 'column',
         animation: 'slideInRight 0.25s ease',
@@ -111,7 +111,7 @@ export default function ProfileDrawer({ onClose }) {
           <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             Profile Settings
           </h2>
-          <button className="modal-close" onClick={onClose} style={{ fontSize: '1.4rem' }}>×</button>
+          <button className="modal-close" onClick={onClose} style={{ fontSize: '1.4rem' }}></button>
         </div>
 
         {/* Avatar section */}

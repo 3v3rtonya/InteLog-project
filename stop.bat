@@ -1,57 +1,47 @@
 @echo off
-title InteLog MIS - Shutdown
+title InteLog MIS - Stopping...
 color 0C
 setlocal EnableDelayedExpansion
 
 echo.
 echo  ============================================================
-echo   InteLog MIS v2.0 - Stopping All Services
+echo   InteLog MIS  -  Shutting Down All Services
 echo  ============================================================
 echo.
 
-:: ── 1. Kill by port 8000 (backend) ───────────────────────────────────────
-echo [1/4] Stopping Backend (port 8000)...
+echo [1/3] Stopping backend (port 8000)...
 set "FOUND=0"
-for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr " :8000 " ^| findstr "LISTENING"') do (
-    if "%%a" NEQ "" if "%%a" NEQ "0" (
-        taskkill /PID %%a /T /F >nul 2>&1
+for /f "tokens=5" %%p in ('netstat -ano 2^>nul ^| findstr ":8000 " ^| findstr "LISTENING"') do (
+    if not "%%p"=="" if not "%%p"=="0" (
+        taskkill /PID %%p /T /F >nul 2>nul
         set "FOUND=1"
-        echo   Killed PID %%a on port 8000.
+        echo   Killed PID %%p
     )
 )
-if "!FOUND!"=="0" echo   Backend was not running.
+taskkill /FI "IMAGENAME eq uvicorn.exe" /T /F >nul 2>nul
+if "!FOUND!"=="0"  echo   Backend was not running.
 echo.
 
-:: ── 2. Kill by ports 5173-5175 (frontend/Vite) ───────────────────────────
-echo [2/4] Stopping Frontend (ports 5173-5175)...
+echo [2/3] Stopping frontend (ports 5173-5175)...
 set "FOUND=0"
-for %%p in (5173 5174 5175) do (
-    for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr " :%%p " ^| findstr "LISTENING"') do (
-        if "%%a" NEQ "" if "%%a" NEQ "0" (
-            taskkill /PID %%a /T /F >nul 2>&1
+for %%port in (5173 5174 5175) do (
+    for /f "tokens=5" %%p in ('netstat -ano 2^>nul ^| findstr ":%%port " ^| findstr "LISTENING"') do (
+        if not "%%p"=="" if not "%%p"=="0" (
+            taskkill /PID %%p /T /F >nul 2>nul
             set "FOUND=1"
-            echo   Killed PID %%a on port %%p.
+            echo   Killed PID %%p on port %%port
         )
     )
 )
-if "!FOUND!"=="0" echo   Frontend was not running.
+if "!FOUND!"=="0"  echo   Frontend was not running.
 echo.
 
-:: ── 3. Kill orphaned image-name processes ────────────────────────────────
-echo [3/4] Killing orphaned processes...
-taskkill /FI "IMAGENAME eq uvicorn.exe" /T /F >nul 2>&1
-taskkill /FI "WINDOWTITLE eq InteLog - Backend"  /T /F >nul 2>&1
-taskkill /FI "WINDOWTITLE eq InteLog - Frontend" /T /F >nul 2>&1
-echo   Done.
-echo.
-
-:: ── 4. Kill node.exe running vite (use PowerShell — wmic is deprecated) ──
-echo [4/4] Sweeping node/vite processes...
-powershell -NoProfile -Command "$procs = Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*vite*' }; foreach ($p in $procs) { Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue; Write-Host ('  Killed node/vite PID ' + $p.ProcessId) }; if (-not $procs) { Write-Host '  No orphaned node/vite processes found.' }"
+echo [3/3] Sweeping orphaned node/vite processes...
+powershell -NoProfile -Command "$procs=Get-WmiObject Win32_Process|Where-Object{$_.Name -eq 'node.exe' -and $_.CommandLine -like '*vite*'};if($procs){foreach($p in $procs){Stop-Process -Id $p.ProcessId -Force -EA SilentlyContinue;Write-Host('  Killed node/vite PID '+$p.ProcessId)}}else{Write-Host '  None found.'}"
 echo.
 
 echo  ============================================================
-echo   All InteLog services stopped.
+echo   All services stopped.
 echo  ============================================================
 echo.
 pause

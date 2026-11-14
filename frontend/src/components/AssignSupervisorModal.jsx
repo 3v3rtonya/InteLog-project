@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
-import { apiGetLecturers, apiAssignIntern } from '../services/api'
+﻿import { useState, useEffect } from 'react'
+import { apiGetUsers, apiAssignIntern } from '../services/api'
 import { useToast } from './Toast'
 
 /**
- * AssignSupervisorModal — repurposed as "Assign to Lecturer" modal.
+ * AssignSupervisorModal " repurposed as "Assign to Lecturer" modal.
  * Admin picks a lecturer to assign the intern to; approval happens later by the lecturer.
  */
 export default function AssignSupervisorModal({ intern, onClose }) {
@@ -14,9 +14,9 @@ export default function AssignSupervisorModal({ intern, onClose }) {
   const [fetching, setFetching] = useState(true)
 
   useEffect(() => {
-    apiGetLecturers({ page_size: 100, school: intern.school || undefined })
+    apiGetUsers({ role: 'lecturer', status: 'active', page_size: 100 })
       .then(({ data }) => setLecturers(data.items || []))
-      .catch(() => showToast('Failed to load lecturers', 'error'))
+      .catch(() => {})
       .finally(() => setFetching(false))
   }, [intern.school])
 
@@ -37,7 +37,7 @@ export default function AssignSupervisorModal({ intern, onClose }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3 className="modal-title">Assign to Lecturer</h3>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
 
         <p style={{ marginBottom: 8, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
@@ -50,10 +50,10 @@ export default function AssignSupervisorModal({ intern, onClose }) {
           background: 'var(--bg-secondary)', borderRadius: 8, padding: '10px 14px',
           marginBottom: 16, fontSize: '0.85rem', display: 'flex', flexWrap: 'wrap', gap: '6px 16px',
         }}>
-          <span><strong>Student ID:</strong> {intern.student_id || '—'}</span>
-          <span><strong>School:</strong> {intern.school || '—'}</span>
-          <span><strong>Dept:</strong> {intern.department || '—'}</span>
-          <span><strong>Supervisor:</strong> {intern.supervisor_id ? '✓ Linked' : '⏳ Not yet linked'}</span>
+          <span><strong>Student ID:</strong> {intern.student_id || '"'}</span>
+          <span><strong>School:</strong> {intern.school || '"'}</span>
+          <span><strong>Dept:</strong> {intern.department || '"'}</span>
+          <span><strong>Supervisor:</strong> {intern.supervisor_id ? ' Linked' : ' Not yet linked'}</span>
         </div>
 
         <div className="form-group">
@@ -70,10 +70,10 @@ export default function AssignSupervisorModal({ intern, onClose }) {
               value={lecturerId}
               onChange={e => setLecturerId(e.target.value)}
             >
-              <option value="">— Select a lecturer —</option>
+              <option value="">" Select a lecturer "</option>
               {lecturers.map(l => (
                 <option key={l.id} value={l.id}>
-                  {l.full_name} · {l.department || l.school || l.email}
+                  {l.full_name}  {l.department || l.school || l.email}
                 </option>
               ))}
             </select>

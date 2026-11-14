@@ -188,6 +188,7 @@ export const apiAdminListSummaries = (params) => api.get('/admin/weekly-summarie
 // Coordinator
 export const apiPromoteCoordinator  = (id) => api.post(`/admin/users/${id}/promote-coordinator`)
 export const apiDemoteCoordinator   = (id) => api.post(`/admin/users/${id}/demote-coordinator`)
+export const apiCoordinatorStats    = () => api.get('/coordinator/stats')
 export const apiCoordinatorUsers    = (params) => api.get('/coordinator/users', { params })
 export const apiCoordinatorPending  = (params) => api.get('/coordinator/pending', { params })
 export const apiCoordinatorApprove  = (id) => api.post(`/coordinator/approve/${id}`)

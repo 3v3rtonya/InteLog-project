@@ -696,6 +696,7 @@ class AttendanceRecordResponse(BaseModel):
     clock_in_location: Optional[str] = None
     clock_out_location: Optional[str] = None
     is_onsite: bool = False
+    clock_in_count: int = 0
     created_at: datetime
 
 
@@ -710,6 +711,26 @@ class WeeklySummaryUpdate(BaseModel):
 class WeeklySummaryReviewRequest(BaseModel):
     feedback: str
     decision: str  # "approved" or "rejected"
+    grade: int     # 0–10 performance grade
+
+    @field_validator("feedback", mode="before")
+    @classmethod
+    def v_feedback(cls, v):
+        s = str(v).strip()
+        if not s:
+            raise ValueError("Feedback is required")
+        return s
+
+    @field_validator("grade", mode="before")
+    @classmethod
+    def v_grade(cls, v):
+        try:
+            n = int(v)
+        except (TypeError, ValueError):
+            raise ValueError("Grade must be an integer")
+        if n < 0 or n > 10:
+            raise ValueError("Grade must be between 0 and 10")
+        return n
 
     @field_validator("decision", mode="before")
     @classmethod
@@ -727,6 +748,7 @@ class WeeklySummaryResponse(BaseModel):
     week_end_date: date
     summary_text: str
     supervisor_feedback: Optional[str] = None
+    supervisor_grade: Optional[int] = None
     status: str
     submitted_at: Optional[datetime] = None
     reviewed_at: Optional[datetime] = None

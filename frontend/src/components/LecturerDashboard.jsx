@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../App'
 import { apiGetLecturerInterns, apiGetPendingLinks, apiGetFlaggedCohortLogs } from '../services/api'
@@ -18,7 +18,7 @@ export default function LecturerDashboard() {
       apiGetFlaggedCohortLogs(1),
     ]).then(([interns, links, flagged]) => {
       setStats({
-        interns: interns.data.total ?? (interns.data.items?.length ?? 0),
+        interns: Array.isArray(interns.data) ? interns.data.length : (interns.data.total ?? interns.data.items?.length ?? 0),
         pendingLinks: links.data.total ?? 0,
         flagged: flagged.data.total ?? 0,
       })
@@ -34,7 +34,7 @@ export default function LecturerDashboard() {
           <h1 className="page-title">Lecturer Dashboard</h1>
           <p className="page-subtitle">
             {user?.school && user?.department
-              ? `${user.school} — ${user.department}`
+              ? `${user.school}  ${user.department}`
               : 'Cohort overview'}
           </p>
         </div>
@@ -42,17 +42,17 @@ export default function LecturerDashboard() {
 
       <div className="stats-grid">
         <div className="stat-card green">
-          <div className="stat-card-icon">🎓</div>
+          <div className="stat-card-icon"></div>
           <div className="stat-card-label">My Interns</div>
           <div className="stat-card-value">{stats.interns}</div>
         </div>
         <div className="stat-card yellow">
-          <div className="stat-card-icon">⏳</div>
+          <div className="stat-card-icon"></div>
           <div className="stat-card-label">Pending Approvals</div>
           <div className="stat-card-value">{stats.pendingLinks}</div>
         </div>
         <div className="stat-card red">
-          <div className="stat-card-icon">⚠️</div>
+          <div className="stat-card-icon"></div>
           <div className="stat-card-label">Flagged Logs</div>
           <div className="stat-card-value">{stats.flagged}</div>
         </div>
@@ -75,7 +75,7 @@ export default function LecturerDashboard() {
                 <div key={u.id} style={{ padding: '8px 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.875rem' }}>
                   <strong>{u.full_name}</strong>
                   <span style={{ color: 'var(--text-muted)', marginLeft: 6 }}>
-                    {u.department} · {u.student_id}
+                    {u.department}  {u.student_id}
                   </span>
                 </div>
               ))
@@ -86,7 +86,7 @@ export default function LecturerDashboard() {
         <div className="card">
           <div className="card-header">
             <h2 className="card-title">Flagged Logs</h2>
-            <button className="btn btn-outline btn-sm" onClick={() => navigate('/lecturer/flagged')}>
+            <button className="btn btn-outline btn-sm" onClick={() => navigate('/lecturer/logs')}>
               View All
             </button>
           </div>

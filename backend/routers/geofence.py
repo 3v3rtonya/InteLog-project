@@ -1,4 +1,4 @@
-"""
+﻿"""
 geofence.py - Supervisor self-service geofence pinning and intern location check.
 
 Each supervisor controls their own office location.
@@ -42,7 +42,7 @@ def _notify_admins(db: Session, supervisor: User, body: str, link_id=None):
         db.add(n)
 
 
-# ── Supervisor: read own geofence ─────────────────────────────────────────────
+#  Supervisor: read own geofence 
 
 @router.get("/my", response_model=GeofenceResponse)
 def get_my_geofence(
@@ -58,7 +58,7 @@ def get_my_geofence(
     return geo
 
 
-# ── Supervisor: pin / re-pin ──────────────────────────────────────────────────
+#  Supervisor: pin / re-pin 
 
 @router.post("/pin", response_model=GeofenceResponse)
 def pin_geofence(
@@ -123,151 +123,3 @@ def pin_geofence(
         db.commit()
         db.refresh(geo)
         return geo
-
-
-# ── Intern: check whether they are on-site ────────────────────────────────────
-
-@router.get("/check")
-def check_location(
-    latitude:   float = Query(..., description="Intern's current latitude"),
-    longitude:  float = Query(..., description="Intern's current longitude"),
-    accuracy_m: Optional[float] = Query(
-        None,
-        description=(
-            "Browser-reported horizontal accuracy in metres (68 % confidence circle). "
-            "Added to the geofence radius as an indoor-drift buffer, capped at "
-            f"{MAX_GPS_DRIFT_M} m."
-        ),
-    ),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("intern")),
-):
-    """
-    Check whether the intern is within their supervisor's geofence.
-    Called by the frontend before log submission.
-
-    Returns is_onsite, raw distance, effective radius used, and a human
-    message.  The accuracy_m buffer ensures that an intern standing at the
-    exact pinned location inside a thick-walled building (where GPS reports
-    a 20-50 m drift) is still correctly marked on-site.
-    """
-    if not current_user.supervisor_id:
-        return {
-            "is_onsite":        False,
-            "distance_m":       None,
-            "effective_radius": None,
-            "message": "You have not been assigned a supervisor yet.",
-        }
-
-    geo = db.query(SupervisorGeofence).filter(
-        SupervisorGeofence.supervisor_id == current_user.supervisor_id,
-        SupervisorGeofence.is_active     == True,
-    ).first()
-
-    if not geo:
-        return {
-            "is_onsite":        False,
-            "distance_m":       None,
-            "effective_radius": None,
-            "message": (
-                "Submission unavailable. "
-                "Awaiting your company supervisor to set the on-site location."
-            ),
-        }
-
-    distance   = haversine_distance(latitude, longitude, geo.latitude, geo.longitude)
-    eff_radius = effective_radius(geo.radius_meters, accuracy_m)
-    is_onsite  = distance <= eff_radius
-
-    # Build a useful human message
-    accuracy_note = (
-        f" (GPS accuracy: ±{accuracy_m:.0f} m, buffer applied)"
-        if accuracy_m and accuracy_m > 0
-        else ""
-    )
-    if is_onsite:
-        msg = (
-            f"You are on-site at {geo.name} "
-            f"({distance:.0f} m from pin, radius {eff_radius:.0f} m{accuracy_note})"
-        )
-    else:
-        msg = (
-            f"You must be on-site to submit. "
-            f"Nearest office: {geo.name} — you are {distance:.0f} m away "
-            f"(effective radius: {eff_radius:.0f} m{accuracy_note})"
-        )
-
-    return {
-        "is_onsite":        is_onsite,
-        "nearest_site":     geo.name,
-        "distance_m":       round(distance, 1),
-        "effective_radius": round(eff_radius, 1),
-        "message":          msg,
-    }
-
-
-# ── Supervisor: live debug / test endpoint ────────────────────────────────────
-
-@router.get("/debug")
-def debug_geofence(
-    latitude:   float = Query(..., description="Test latitude"),
-    longitude:  float = Query(..., description="Test longitude"),
-    accuracy_m: Optional[float] = Query(None, description="Simulated GPS accuracy (m)"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("supervisor")),
-):
-    """
-    Diagnostic endpoint for supervisors to test their geofence configuration.
-
-    Returns the raw distance from the submitted coordinates to the pinned
-    location, the effective radius with the accuracy buffer applied, and
-    whether those coordinates would be accepted as on-site.
-
-    Useful for verifying the pin is correct before interns arrive.
-    """
-    geo = db.query(SupervisorGeofence).filter(
-        SupervisorGeofence.supervisor_id == current_user.id,
-        SupervisorGeofence.is_active     == True,
-    ).first()
-
-    if not geo:
-        raise HTTPException(
-            404,
-            "You have not pinned an office location yet. "
-            "Use the Office Location page to pin your site first."
-        )
-
-    distance   = haversine_distance(latitude, longitude, geo.latitude, geo.longitude)
-    eff_radius = effective_radius(geo.radius_meters, accuracy_m)
-    is_onsite  = distance <= eff_radius
-
-    accuracy_buffer = min(float(accuracy_m), float(MAX_GPS_DRIFT_M)) if accuracy_m else float(MAX_GPS_DRIFT_M)
-
-    return {
-        "pinned_location": {
-            "name":           geo.name,
-            "latitude":       float(geo.latitude),
-            "longitude":      float(geo.longitude),
-            "pinned_radius_m": int(geo.radius_meters),
-        },
-        "test_point": {
-            "latitude":   latitude,
-            "longitude":  longitude,
-            "accuracy_m": accuracy_m,
-        },
-        "result": {
-            "distance_m":       round(distance, 2),
-            "accuracy_buffer_m": round(accuracy_buffer, 1),
-            "effective_radius_m": round(eff_radius, 1),
-            "is_onsite":         is_onsite,
-            "verdict": "ON-SITE ✓" if is_onsite else "OFF-SITE ✗",
-        },
-        "explanation": (
-            f"Distance to pin: {distance:.2f} m. "
-            f"Pinned radius: {geo.radius_meters} m + "
-            f"GPS buffer: {accuracy_buffer:.0f} m = "
-            f"Effective radius: {eff_radius:.0f} m. "
-            f"{'Within' if is_onsite else 'Outside'} effective radius → "
-            f"{'ON-SITE' if is_onsite else 'OFF-SITE'}."
-        ),
-    }

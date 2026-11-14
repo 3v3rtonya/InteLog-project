@@ -79,19 +79,16 @@ export default function ResetPasswordPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <svg width="60" height="60" viewBox="0 0 100 100" fill="none">
-            <defs>
-              <linearGradient id="rg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#1565C0"/><stop offset="1" stopColor="#2E7D32"/>
-              </linearGradient>
-            </defs>
-            <circle cx="50" cy="50" r="48" fill="url(#rg)"/>
-            <circle cx="50" cy="50" r="32" fill="none" stroke="#4CAF50" strokeWidth="4"/>
-            <text x="50" y="46" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">INT</text>
-            <text x="50" y="62" textAnchor="middle" fill="#A5D6A7" fontSize="10">LOG</text>
-          </svg>
+          <img
+            src="/dekut-logo.png"
+            alt="Dedan Kimathi University of Technology"
+            style={{ width: 90, height: 90, objectFit: 'contain', margin: '0 auto', display: 'block' }}
+          />
           <div className="auth-logo-title">Set New Password</div>
           <div className="auth-logo-sub">InteLog MIS</div>
+          <div className="auth-logo-sub" style={{ marginTop: 2, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            Dedan Kimathi University of Technology
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} noValidate>

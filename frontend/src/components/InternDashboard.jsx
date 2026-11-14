@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../App'
 import { apiGetLogs, apiGetPeriodStatus } from '../services/api'
 import StatusBadge from './StatusBadge'
 import AttachmentDateModal from './AttachmentDateModal'
-import AttendanceCalendar from './AttendanceCalendar'
 import AbsenceRequestForm from './AbsenceRequestForm'
 import { AlertTriangle, BookOpen, Palmtree, Lock, Calendar, ClipboardList, CheckCircle, Hourglass, FileEdit } from 'lucide-react'
+import ClockInOut from './ClockInOut'
 
 export default function InternDashboard() {
   const { user } = useAuth()
@@ -20,7 +20,6 @@ export default function InternDashboard() {
   const [periodLoading, setPeriodLoading] = useState(true)
   const [showDateModal, setShowDateModal] = useState(false)
   const [showAbsenceForm, setShowAbsenceForm] = useState(false)
-  const [attendanceKey, setAttendanceKey] = useState(0)    // bump to refresh calendar
 
   // Load period status
   useEffect(() => {
@@ -60,7 +59,7 @@ export default function InternDashboard() {
             setShowDateModal(false)
             // Re-fetch period status
             apiGetPeriodStatus().then(r => setPeriodStatus(r.data)).catch(() => {})
-            setAttendanceKey(k => k + 1)
+            // attendance refreshed
           }}
         />
       )}
@@ -69,7 +68,7 @@ export default function InternDashboard() {
       {showAbsenceForm && (
         <AbsenceRequestForm
           onClose={() => setShowAbsenceForm(false)}
-          onSubmitted={() => setAttendanceKey(k => k + 1)}
+          onSubmitted={() => {}}
         />
       )}
 
@@ -144,6 +143,7 @@ export default function InternDashboard() {
       )}
 
       {/* ── Stats grid ──────────────────────────────────────────── */}
+      <ClockInOut />
       <div className="stats-grid">
         <div className="stat-card blue">
           <div className="stat-card-icon"><ClipboardList size={28} /></div>
@@ -166,24 +166,6 @@ export default function InternDashboard() {
           <div className="stat-card-value">{stats.draft}</div>
         </div>
       </div>
-
-      {/* ── Attendance calendar ─────────────────────────────────── */}
-      {periodStatus?.attachment_start && (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <div className="card-header">
-            <h2 className="card-title">Attendance</h2>
-            {!isExpired && (
-              <button
-                className="btn btn-outline btn-sm"
-                onClick={() => setShowAbsenceForm(true)}
-              >
-                + Report Absence
-              </button>
-            )}
-          </div>
-          <AttendanceCalendar key={attendanceKey} />
-        </div>
-      )}
 
       {/* ── Recent logs ─────────────────────────────────────────── */}
       <div className="card">

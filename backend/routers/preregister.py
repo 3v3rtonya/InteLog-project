@@ -1,20 +1,20 @@
-"""
-preregister.py — Admin bulk pre-registration of students via CSV upload.
+﻿"""
+preregister.py  Admin bulk pre-registration of students via CSV upload.
 
 CSV columns (header row required, order flexible):
   full_name | student_id | email | phone | school | department
   | lecturer_name | lecturer_email | lecturer_phone
 
 Logic per row:
-  1. Lecturer — find by lecturer_email:
-       - Exists (any status) → reuse
-       - Not found → create with role=lecturer, status=active,
+  1. Lecturer  find by lecturer_email:
+       - Exists (any status)  reuse
+       - Not found  create with role=lecturer, status=active,
          temp password = first part of email before '@'
-  2. Intern shell — find by student_id + role=intern:
-       - Not found → create with status=shell (no password, placeholder email if missing)
-       - Found with status=shell → update name/phone/school/dept if provided
-       - Found with status=pending/active → skip (student already self-registered)
-  3. LecturerInternAssignment — upsert (one intern → one lecturer)
+  2. Intern shell  find by student_id + role=intern:
+       - Not found  create with status=shell (no password, placeholder email if missing)
+       - Found with status=shell  update name/phone/school/dept if provided
+       - Found with status=pending/active  skip (student already self-registered)
+  3. LecturerInternAssignment  upsert (one intern  one lecturer)
 """
 import csv
 import io
@@ -29,7 +29,7 @@ from backend.database import get_db
 from backend.models import User, LecturerInternAssignment, Notification
 from backend.schemas import PreRegisterImportResponse, PreRegisterRowResult
 from backend.services.auth_service import hash_password
-from backend.services.email_service import send_lecturer_welcome_email
+from backend.services.email_service import send_welcome_email
 from backend.dependencies import get_current_admin
 
 router = APIRouter(prefix="/admin/preregister", tags=["preregister"])
@@ -58,11 +58,11 @@ def _process_row(
     row: dict,
     db: Session,
     admin_id,
-    lecturer_cache: dict,   # lecturer_email → User
+    lecturer_cache: dict,   # lecturer_email  User
 ) -> PreRegisterRowResult:
     """Process a single CSV row. Returns a result object."""
 
-    # ── Normalise values ──────────────────────────────────────────────────
+    #  Normalise values 
     def g(col): return row.get(col, "").strip()
 
     full_name      = g("full_name")
@@ -85,7 +85,7 @@ def _process_row(
             message=f"Missing columns: {', '.join(missing)}",
         )
 
-    # ── 1. Lecturer ───────────────────────────────────────────────────────
+    #  1. Lecturer 
     lec_action = "existing_lecturer"
     if lecturer_email in lecturer_cache:
         lecturer = lecturer_cache[lecturer_email]
@@ -121,18 +121,12 @@ def _process_row(
             db.flush()
             lec_action = "created_lecturer"
 
-            # Email credentials to new lecturer (non-blocking)
-            send_lecturer_welcome_email(
-                user_email=lecturer_email,
-                user_name=lecturer_name,
-                school=school,
-                department=department,
-                temp_password=temp_pw,
-            )
+            # Email welcome to new lecturer (non-blocking)
+            send_welcome_email(lecturer_email, lecturer_name, "lecturer")
 
         lecturer_cache[lecturer_email] = lecturer
 
-    # ── 2. Intern shell ───────────────────────────────────────────────────
+    #  2. Intern shell 
     intern_action = "created_intern"
     existing = db.query(User).filter(
         User.student_id == student_id,
@@ -141,7 +135,7 @@ def _process_row(
 
     if existing:
         if existing.status in ("pending", "active"):
-            # Student already self-registered — honour their account, just ensure assignment
+            # Student already self-registered  honour their account, just ensure assignment
             intern = existing
             intern_action = "existing_active_intern"
         elif existing.status == "shell":
@@ -188,7 +182,7 @@ def _process_row(
         db.add(intern)
         db.flush()
 
-    # ── 3. Lecturer ↔ Intern assignment ───────────────────────────────────
+    #  3. Lecturer  Intern assignment 
     assignment_created = False
     existing_assignment = db.query(LecturerInternAssignment).filter(
         LecturerInternAssignment.intern_id == intern.id,
@@ -223,7 +217,7 @@ def _process_row(
     )
 
 
-# ── CSV template download ─────────────────────────────────────────────────────
+#  CSV template download 
 
 @router.get("/template")
 def download_template(_: User = Depends(get_current_admin)):
@@ -246,7 +240,7 @@ def download_template(_: User = Depends(get_current_admin)):
     )
 
 
-# ── Bulk import ───────────────────────────────────────────────────────────────
+#  Bulk import 
 
 @router.post("/upload", response_model=PreRegisterImportResponse)
 async def bulk_preregister(

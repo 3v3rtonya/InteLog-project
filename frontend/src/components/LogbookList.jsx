@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiGetLogs, apiDeleteLog } from '../services/api'
 import StatusBadge from './StatusBadge'
@@ -24,7 +24,7 @@ export default function LogbookList() {
       setTotal(data.total || 0)
       setTotalPages(data.total_pages || 1)
       setPage(p)
-    }).catch(() => showToast('Failed to load logs', 'error')).finally(() => setLoading(false))
+    }).catch(() => {}).finally(() => setLoading(false))
   }
 
   useEffect(() => { load(1) }, [filters])
@@ -84,7 +84,7 @@ export default function LogbookList() {
                       <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/intern/logs/${log.id}`)}>View</button>
                       {log.status === 'draft' && (
                         <>
-                          <button className="btn btn-outline btn-sm" onClick={() => navigate(`/intern/logs/${log.id}`)}>Edit</button>
+                          <button className="btn btn-outline btn-sm" onClick={() => navigate(`/intern/logs/${log.id}/edit`)}>Edit</button>
                           <button className="btn btn-danger btn-sm" onClick={() => setDeleteId(log.id)}>Delete</button>
                         </>
                       )}

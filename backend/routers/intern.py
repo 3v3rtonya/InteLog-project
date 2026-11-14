@@ -1,4 +1,4 @@
-"""
+﻿"""
 intern.py - Intern logbook routes.
 Uses per-supervisor geofence instead of global site_locations.
 Sends notification to supervisor on log submission.
@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, 
 from sqlalchemy.orm import Session
 
 from backend.database import get_db
-from backend.models import User, LogbookEntry, LogImage, SupervisorGeofence, Notification, NonWorkingDay
+from backend.models import User, LogbookEntry, LogImage, SupervisorGeofence, Notification, NonWorkingDay, AttendanceRecord
 from backend.schemas import LogbookCreate, LogUpdateRequest, LogResponse, ImageResponse
 from backend.services.pii_service import scrub_pii
 from backend.services.productivity_service import analyze_log_quality
@@ -70,17 +70,12 @@ def create_log(
     is_weekend_day = _is_weekend(payload.entry_date)
     is_non_working_day = is_holiday_day or is_weekend_day
 
-    is_onsite = False
-
-    if payload.status == "pending_approval":
-        if is_weekend_day:
-            # Weekend — no geofence check at all, intern is voluntarily working.
-            # is_onsite stays False (they're not "on-site" in the formal sense).
-            pass
-        elif is_holiday_day:
-            is_onsite = True
-        else:
-            is_onsite = True # Geofence validation moved to Clock In/Out system
+    # is_onsite derived from clock-in record for the entry date (Req 3.5)
+    _att = db.query(AttendanceRecord).filter(
+        AttendanceRecord.intern_id == current_user.id,
+        AttendanceRecord.date == payload.entry_date,
+    ).first()
+    is_onsite = bool(_att and _att.clock_in_time is not None)
     solutions_scrubbed = scrub_pii(payload.solutions_offered)
     is_flagged, flag_reason = analyze_log_quality(
         payload.activities_performed, payload.solutions_offered

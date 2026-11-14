@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+﻿import { useState, useEffect, useCallback } from 'react'
 import { apiGetCohortLogs, apiGetCohortLog } from '../services/api'
 import { useToast } from './Toast'
 import StatusBadge from './StatusBadge'
@@ -22,7 +22,7 @@ export default function LecturerLogsView() {
     if (filters.is_flagged !== '') params.is_flagged = filters.is_flagged === 'true'
     apiGetCohortLogs(params)
       .then(r => { setLogs(r.data.items || []); setTotal(r.data.total || 0) })
-      .catch(() => showToast('Failed to load logs', 'error'))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [page, filters])
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+﻿import { useState, useEffect, useCallback } from 'react'
 import { apiGetLecturerInterns, apiGetCohortLogs } from '../services/api'
 import StatusBadge from './StatusBadge'
 import { useToast } from './Toast'
@@ -26,7 +26,7 @@ export default function LecturerInternList() {
         setInterns(r.data.items || [])
         setTotal(r.data.total || 0)
       })
-      .catch(() => showToast('Failed to load interns', 'error'))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [page, search])
 

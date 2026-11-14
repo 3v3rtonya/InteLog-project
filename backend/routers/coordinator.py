@@ -48,6 +48,49 @@ def _school_filter(query, current_user, model, school_field):
     return query
 
 
+# -- Dashboard stats ----------------------------------------------------------
+
+@router.get("/stats")
+def get_coordinator_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_or_coordinator),
+):
+    """Summary counts scoped to coordinator's school."""
+    def school_q(model, school_field):
+        q = db.query(model)
+        if current_user.role == "lecturer" and current_user.school:
+            q = q.filter(school_field == current_user.school)
+        return q
+
+    pending_approvals = school_q(User, User.school).filter(
+        User.status.in_(["pending", "waiting"])
+    ).count()
+
+    active_interns = school_q(User, User.school).filter(
+        User.role == "intern", User.status == "active"
+    ).count()
+
+    active_lecturers = school_q(User, User.school).filter(
+        User.role == "lecturer", User.status == "active"
+    ).count()
+
+    # Flagged logs
+    logs_q = db.query(LogbookEntry).filter(LogbookEntry.is_flagged == True)
+    if current_user.role == "lecturer" and current_user.school:
+        intern_ids = db.query(User.id).filter(
+            User.school == current_user.school, User.role == "intern"
+        )
+        logs_q = logs_q.filter(LogbookEntry.intern_id.in_(intern_ids))
+    flagged_logs = logs_q.count()
+
+    return {
+        "pending_approvals": pending_approvals,
+        "active_interns": active_interns,
+        "active_lecturers": active_lecturers,
+        "flagged_logs": flagged_logs,
+    }
+
+
 # -- Users in school ----------------------------------------------------------
 
 @router.get("/users")

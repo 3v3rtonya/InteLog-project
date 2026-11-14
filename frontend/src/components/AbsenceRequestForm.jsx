@@ -1,20 +1,20 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { apiSubmitAbsence } from '../services/api'
 import { useToast } from './Toast'
 
 const TYPES = [
-  { value: 'sick',      label: '🤒 Sick Day',         desc: 'You are unwell and cannot attend' },
-  { value: 'day_off',   label: '🏖️ Day Off',           desc: 'Your supervisor gave you a day off' },
-  { value: 'emergency', label: '⚠️ Emergency',         desc: 'Floods, protests, transport failure, etc.' },
-  { value: 'half_day',  label: '🕛 Half Day',          desc: 'You attended but left early' },
+  { value: 'sick',      label: ' Sick Day',         desc: 'You are unwell and cannot attend' },
+  { value: 'day_off',   label: ' Day Off',           desc: 'Your supervisor gave you a day off' },
+  { value: 'emergency', label: ' Emergency',         desc: 'Floods, protests, transport failure, etc.' },
+  { value: 'half_day',  label: ' Half Day',          desc: 'You attended but left early' },
 ]
 
 /**
  * AbsenceRequestForm
  *
  * Props:
- *   onClose   — called when modal should close
- *   onSubmitted — called after a successful submission
+ *   onClose    called when modal should close
+ *   onSubmitted  called after a successful submission
  */
 export default function AbsenceRequestForm({ onClose, onSubmitted }) {
   const { showToast } = useToast()
@@ -65,11 +65,11 @@ export default function AbsenceRequestForm({ onClose, onSubmitted }) {
       <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
         <div className="modal-header">
           <h3 className="modal-title">Submit Absence Request</h3>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="modal-close" onClick={onClose} aria-label="Close"></button>
         </div>
 
         <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: 16 }}>
-          No geofence required — you can submit this from anywhere.
+          No geofence required  you can submit this from anywhere.
         </p>
 
         {/* Date */}
@@ -118,7 +118,7 @@ export default function AbsenceRequestForm({ onClose, onSubmitted }) {
             borderRadius: 'var(--radius)', padding: '10px 14px',
             fontSize: '0.82rem', color: '#856404', marginBottom: 12,
           }}>
-            ✅ Emergency absences are <strong>automatically acknowledged</strong> by the system. No supervisor action needed.
+             Emergency absences are <strong>automatically acknowledged</strong> by the system. No supervisor action needed.
           </div>
         )}
 
@@ -133,7 +133,7 @@ export default function AbsenceRequestForm({ onClose, onSubmitted }) {
               form.type === 'day_off'   ? 'e.g. Supervisor granted a day off due to low workload' :
               form.type === 'emergency' ? 'e.g. Maandamano protests blocking all transport routes' :
               form.type === 'half_day'  ? 'e.g. Attended morning session, left at 1pm due to medical appointment' :
-              'Describe the reason for your absence…'
+              'Describe the reason for your absence'
             }
             value={form.reason}
             onChange={e => { setForm(f => ({ ...f, reason: e.target.value })); setErrors(ev => ({ ...ev, reason: '' })) }}
