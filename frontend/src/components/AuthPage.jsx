@@ -30,7 +30,7 @@ export default function AuthPage() {
           <Logo />
           <div className="auth-logo-title">InteLog MIS</div>
           <div className="auth-logo-sub">Intern Management Information System</div>
-          <div className="auth-logo-sub" style={{ marginTop: 4, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          <div className="auth-logo-dekut">
             Dedan Kimathi University of Technology
           </div>
         </div>
