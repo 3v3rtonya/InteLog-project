@@ -1,4 +1,4 @@
-"""
+﻿"""
 config.py - Pydantic Settings loading from .env
 """
 import sys
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
 
     class Config:
         # Support running from project root OR from backend/ directory
-        env_file = ["backend/.env", ".env"]
+        env_file = ["backend/.env", ".env", "/etc/secrets/.env"]
         env_file_encoding = "utf-8"
         case_sensitive = True
 
