@@ -19,7 +19,8 @@ export const getApiErrorMessage = (err) => {
   return String(detail)
 }
 
-const api = axios.create({ baseURL: '/api', withCredentials: true })
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL : ''
+const api = axios.create({ baseURL: BASE_URL + '/api', withCredentials: true })
 
 let _token = sessionStorage.getItem('access_token') || null
 let _onLogout = null
@@ -41,7 +42,7 @@ api.interceptors.response.use(
       orig._retry = true
       refreshing = true
       try {
-        const { data } = await axios.post('/api/auth/refresh', {}, { withCredentials: true })
+        const { data } = await axios.post(BASE_URL + '/api/auth/refresh', {}, { withCredentials: true })
         setToken(data.access_token)
         orig.headers.Authorization = `Bearer ${data.access_token}`
         refreshing = false
