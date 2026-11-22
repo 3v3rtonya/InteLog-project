@@ -27,8 +27,8 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(SlowAPIMiddleware)
 
+# CORS runs first (FastAPI applies middleware in reverse order of registration)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -36,11 +36,13 @@ app.add_middleware(
         "http://localhost:5173",
         "https://intelog.vercel.app",
         "https://intelog-project.vercel.app",
+        "https://www.intelog.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(SlowAPIMiddleware)
 
 # Routers
 app.include_router(auth.router)
