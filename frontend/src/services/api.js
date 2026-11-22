@@ -19,8 +19,10 @@ export const getApiErrorMessage = (err) => {
   return String(detail)
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://intelog-backend.onrender.com'
-const api = axios.create({ baseURL: BASE_URL + '/api', withCredentials: true })
+const RENDER_URL = 'https://intelog-backend.onrender.com'
+const IS_PROD = import.meta.env.PROD
+const BASE_URL = IS_PROD ? (import.meta.env.VITE_API_BASE_URL || RENDER_URL) : '/api'
+const api = axios.create({ baseURL: BASE_URL, withCredentials: true })
 
 let _token = sessionStorage.getItem('access_token') || null
 let _onLogout = null
@@ -42,7 +44,7 @@ api.interceptors.response.use(
       orig._retry = true
       refreshing = true
       try {
-        const { data } = await axios.post(BASE_URL + '/api/auth/refresh', {}, { withCredentials: true })
+        const { data } = await axios.post(BASE_URL + '/auth/refresh', {}, { withCredentials: true })
         setToken(data.access_token)
         orig.headers.Authorization = `Bearer ${data.access_token}`
         refreshing = false
