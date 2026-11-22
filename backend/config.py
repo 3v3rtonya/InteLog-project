@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_AUTH: str = "10/minute"
 
     # Cookie security — set True in production (requires HTTPS)
-    COOKIE_SECURE: bool = False
+    COOKIE_SECURE: bool = True
 
     class Config:
         # Support running from project root OR from backend/ directory
