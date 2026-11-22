@@ -34,10 +34,9 @@ app.add_middleware(
     allow_origins=[
         settings.FRONTEND_URL,
         "http://localhost:5173",
-        "https://intelog.vercel.app",
-        "https://intelog-project.vercel.app",
-        "https://www.intelog.vercel.app",
+        "http://localhost:5174",
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
