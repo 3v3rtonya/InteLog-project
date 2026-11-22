@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     SMTP_USE_TLS: bool = True
 
     # App
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "https://inte-log-project.vercel.app"
     UPLOAD_DIR: str = "uploads"
     MAX_IMAGE_SIZE_MB: int = 5
     MAX_IMAGES_PER_LOG: int = 3
