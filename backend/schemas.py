@@ -1,4 +1,4 @@
-﻿"""
+"""
 schemas.py - Pydantic schemas for request/response validation.
 """
 from pydantic import BaseModel, field_validator, ConfigDict, Field
@@ -128,13 +128,6 @@ class SupervisorSignupRequest(BaseModel):
         return s
 
 
-
-
-
-
-
-        return s
-
     @field_validator("password", mode="before")
     @classmethod
     def v_password(cls, v): return _strong_password(v)
@@ -164,13 +157,6 @@ class LecturerSignupRequest(BaseModel):
             raise ValueError("Full name must be at least 2 characters")
         return s
 
-
-
-
-
-
-
-        return s
 
     @field_validator("password", mode="before")
     @classmethod
@@ -680,7 +666,7 @@ class PreRegisterImportResponse(BaseModel):
     rows: List[PreRegisterRowResult]
 
 
-# ── Attendance (Clock In/Out) ──────────────────────────────────────────────────
+# -- Attendance (Clock In/Out) --------------------------------------------------
 
 class ClockInRequest(BaseModel):
     latitude: float
@@ -700,7 +686,7 @@ class AttendanceRecordResponse(BaseModel):
     created_at: datetime
 
 
-# ── Weekly Summary ─────────────────────────────────────────────────────────────
+# -- Weekly Summary -------------------------------------------------------------
 
 class WeeklySummaryCreate(BaseModel):
     summary_text: str = Field(..., min_length=10)
@@ -711,7 +697,7 @@ class WeeklySummaryUpdate(BaseModel):
 class WeeklySummaryReviewRequest(BaseModel):
     feedback: str
     decision: str  # "approved" or "rejected"
-    grade: int     # 0–10 performance grade
+    grade: int     # 0�10 performance grade
 
     @field_validator("feedback", mode="before")
     @classmethod
