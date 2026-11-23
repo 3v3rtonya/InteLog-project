@@ -1,0 +1,6 @@
+# Optional ML dependencies for the AI logbook assessment feature (/assess/logbook).
+# These are NOT installed on Render's free tier due to memory and build-time constraints.
+# To enable the ML assessment feature locally or on a paid tier, run:
+#   pip install -r backend/requirements-ml.txt
+torch
+transformers

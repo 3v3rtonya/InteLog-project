@@ -1,9 +1,9 @@
-﻿/* ============================================================
-   InteLog MIS — Service Worker
+/* ============================================================
+   InteLog MIS � Service Worker
    Cache strategy:
-   - App shell (HTML, CSS, JS, icons) → Cache First
-   - API calls (/api/*) → Network First, fallback to cache
-   - Uploads (/api/uploads/*) → Cache First
+   - App shell (HTML, CSS, JS, icons) ? Cache First
+   - API calls (/api/*) ? Network First, fallback to cache
+   - Uploads (/api/uploads/*) ? Cache First
    ============================================================ */
 
 const CACHE_VERSION = 'intelog-v1'
@@ -19,18 +19,20 @@ const STATIC_ASSETS = [
   '/icon-512x512.png',
 ]
 
-// ── Install: pre-cache app shell ───────────────────────────
+const BACKEND_ORIGIN = 'https://intelog-backend.onrender.com'
+
+// -- Install: pre-cache app shell ---------------------------
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then(cache => {
       return cache.addAll(STATIC_ASSETS).catch(() => {
-        // Non-fatal — some assets may not exist yet during first install
+        // Non-fatal � some assets may not exist yet during first install
       })
     }).then(() => self.skipWaiting())
   )
 })
 
-// ── Activate: clean up old caches ──────────────────────────
+// -- Activate: clean up old caches --------------------------
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -43,15 +45,23 @@ self.addEventListener('activate', event => {
   )
 })
 
-// ── Fetch: routing logic ────────────────────────────────────
+// -- Fetch: routing logic ------------------------------------
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url)
 
-  // Skip non-GET and cross-origin requests
+  // Skip non-GET requests
   if (event.request.method !== 'GET') return
-  if (url.origin !== self.location.origin) return
+  // Allow same-origin and the known backend origin; skip everything else
+  if (url.origin !== self.location.origin && url.origin !== BACKEND_ORIGIN) return
 
-  // API calls → Network First, brief cache fallback
+  // Production API calls go directly to the backend origin (cross-origin)
+  if (url.origin === BACKEND_ORIGIN) {
+    if (url.pathname.startsWith('/auth/')) return  // never cache auth endpoints
+    event.respondWith(networkFirst(event.request, API_CACHE))
+    return
+  }
+
+  // API calls ? Network First, brief cache fallback
   if (url.pathname.startsWith('/api/')) {
     // Uploads can be cached aggressively
     if (url.pathname.startsWith('/api/uploads/')) {
@@ -64,11 +74,11 @@ self.addEventListener('fetch', event => {
     return
   }
 
-  // App shell and static assets → Cache First
+  // App shell and static assets ? Cache First
   event.respondWith(cacheFirst(event.request, STATIC_CACHE))
 })
 
-// ── Cache First strategy ────────────────────────────────────
+// -- Cache First strategy ------------------------------------
 async function cacheFirst(request, cacheName) {
   const cached = await caches.match(request)
   if (cached) return cached
@@ -89,7 +99,7 @@ async function cacheFirst(request, cacheName) {
   }
 }
 
-// ── Network First strategy ──────────────────────────────────
+// -- Network First strategy ----------------------------------
 async function networkFirst(request, cacheName) {
   try {
     const response = await fetch(request)

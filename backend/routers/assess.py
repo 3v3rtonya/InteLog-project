@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from backend.dependencies import get_current_user
-from backend.services.model_service import classify_entry, generate_feedback, _load_model
 
 router = APIRouter(prefix="/assess", tags=["Assessment"])
 
@@ -28,10 +27,13 @@ def warmup_model():
     real intern request arrives.
     """
     try:
+        from backend.services.model_service import _load_model
         _load_model()
         return {"status": "ok", "message": "AI model loaded and ready."}
+    except ImportError:
+        return {"status": "unavailable", "message": "ML dependencies not installed. Run: pip install -r backend/requirements-ml.txt"}
     except Exception as e:
-        # Return 200 so start.bat curl check does not fail â€” the model will
+        # Return 200 so start.bat curl check does not fail — the model will
         # simply load lazily on the first real /assess/logbook request.
         return {"status": "degraded", "message": str(e)}
 
@@ -46,6 +48,13 @@ def assess_logbook_entry(
     Provides instant pre-submission evaluation, generating a pedagogical feedback layer.
     Requires a valid JWT (all authenticated roles).
     """
+    try:
+        from backend.services.model_service import classify_entry, generate_feedback
+    except ImportError:
+        raise HTTPException(
+            status_code=503,
+            detail="ML assessment feature is not available on this deployment."
+        )
     try:
         result = classify_entry(payload.text)
         feedback = generate_feedback(result["class"])

@@ -38,6 +38,11 @@ def _load_model():
             label_map = {"0": "INADEQUATE", "1": "LOW_DETAIL", "2": "HIGH_QUALITY"}
             
         logger.info("Logbook classification model loaded successfully.")
+    except ImportError as e:
+        raise RuntimeError(
+            "ML dependencies (torch, transformers) are not installed. "
+            "Run: pip install -r backend/requirements-ml.txt"
+        ) from e
     except Exception as e:
         logger.error(f"Failed to load classification model: {e}")
         raise
@@ -92,3 +97,4 @@ def generate_feedback(class_name: str) -> str:
     elif class_name == "HIGH_QUALITY":
         return "Excellent entry! It meets academic standards for faculty review."
     return "Entry received."
+
