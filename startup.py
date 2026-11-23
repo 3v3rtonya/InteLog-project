@@ -1,4 +1,4 @@
-﻿"""
+"""
 startup.py - Production startup script for Render.
 Runs all migrations, seeds admin account, then starts uvicorn.
 """
@@ -61,6 +61,12 @@ def migrate():
     print("\n--- Extra schema patches ---")
 
     patches = [
+        ("""CREATE TABLE IF NOT EXISTS institutions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            name VARCHAR(255) NOT NULL UNIQUE,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        )""", "institutions table"),
+        ("ALTER TABLE users ADD COLUMN IF NOT EXISTS institution_id UUID REFERENCES institutions(id) ON DELETE SET NULL", "institution_id col"),
         ("ALTER TABLE users ADD COLUMN IF NOT EXISTS student_id VARCHAR(50)", "student_id col"),
         ("ALTER TABLE users ADD COLUMN IF NOT EXISTS student_id_status VARCHAR(20) DEFAULT 'unlinked'", "student_id_status col"),
         ("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_path TEXT", "avatar_path col"),
