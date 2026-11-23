@@ -1,9 +1,10 @@
-ï»¿import { useState } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import LoginForm from './LoginForm'
 import SignupForm from './SignupForm'
 import ForgotPasswordForm from './ForgotPasswordForm'
 import { GoogleOAuthButton, GoogleCallback, IS_CONFIGURED } from './GoogleOAuthButton'
+import PWAInstallButton from './PWAInstallButton'
 
 function Logo() {
   return (
@@ -24,8 +25,10 @@ export default function AuthPage() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
+      {/* iOS "Add to Home Screen" banner sits above the card */}
+      <PWAInstallButton variant="banner" />
 
+      <div className="auth-card">
         <div className="auth-logo">
           <Logo />
           <div className="auth-logo-title">InteLog MIS</div>
@@ -71,6 +74,8 @@ export default function AuthPage() {
           </>
         )}
 
+        {/* Android / Desktop Chrome install button — shown at bottom of card */}
+        <PWAInstallButton variant="default" />
       </div>
     </div>
   )

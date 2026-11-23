@@ -1,4 +1,4 @@
-﻿import { useState, useContext } from 'react'
+import { useState, useContext } from 'react'
 import { useAuth, useTheme } from '../App'
 import { useNavigate } from 'react-router-dom'
 import { apiLogout } from '../services/api'
@@ -6,6 +6,7 @@ import { useToast } from './Toast'
 import NotificationBell from './NotificationBell'
 import ProfileDrawer from './ProfileDrawer'
 import { Moon, Sun, User, Menu } from 'lucide-react'
+import PWAInstallButton from './PWAInstallButton'
 import { SidebarContext } from '../context/SidebarContext'
 
 export default function Navbar() {
@@ -51,6 +52,7 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-right">
+          {user && <PWAInstallButton variant="navbar" />}
           {user && <NotificationBell />}
           <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}

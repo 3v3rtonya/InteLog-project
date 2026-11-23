@@ -379,6 +379,60 @@ tbody tr:hover { background: var(--table-row-hover); }
 .auth-footer-links  { display: flex; justify-content: center; gap: 16px; }
 .auth-footer-link   { font-size: 0.7rem; color: var(--text-muted); opacity: 0.5; }
 .auth-footer-link:hover { opacity: 1; text-decoration: none; color: var(--text-muted); }
+/* -- PWA Install Button ------------------------------------- */
+/* Standalone card button — shown at bottom of auth card */
+.pwa-install-card-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; margin-top: 16px; padding: 10px 16px;
+  background: transparent;
+  border: 1.5px solid var(--brand-green);
+  border-radius: var(--radius);
+  color: var(--brand-green);
+  font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; transition: all var(--transition);
+}
+.pwa-install-card-btn:hover {
+  background: var(--brand-green);
+  color: #fff;
+}
+[data-theme="dark"] .pwa-install-card-btn {
+  border-color: #2E8B57; color: #2E8B57;
+}
+[data-theme="dark"] .pwa-install-card-btn:hover {
+  background: #2E8B57; color: #fff;
+}
+
+/* Navbar install button — compact, only shown on Android/Desktop */
+.pwa-install-btn {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.78rem; padding: 4px 10px;
+  white-space: nowrap;
+}
+
+/* iOS "Add to Home Screen" instruction banner */
+.pwa-ios-banner {
+  position: fixed;
+  bottom: 16px; left: 50%; transform: translateX(-50%);
+  z-index: 999;
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(0, 60, 0, 0.92);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 12px 16px;
+  max-width: 340px; width: calc(100% - 32px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  font-size: 0.82rem; line-height: 1.4;
+}
+.pwa-ios-icon { flex-shrink: 0; opacity: 0.85; }
+.pwa-ios-text { flex: 1; }
+.pwa-ios-text strong { color: #FFD700; }
+.pwa-ios-dismiss {
+  flex-shrink: 0; background: none; border: none; color: rgba(255,255,255,0.6);
+  font-size: 1rem; cursor: pointer; padding: 0 0 0 8px; line-height: 1;
+}
+.pwa-ios-dismiss:hover { color: #fff; }
 
 /* -- Google button ------------------------------------------ */
 .btn-google {
@@ -665,3 +719,4 @@ tbody tr:hover { background: var(--table-row-hover); }
   .form-action-btns { flex-direction: column; }
   .form-action-btns .btn { width: 100%; justify-content: center; }
 }
+
