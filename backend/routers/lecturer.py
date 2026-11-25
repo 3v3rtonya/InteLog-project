@@ -1,4 +1,4 @@
-﻿"""
+"""
 lecturer.py - Lecturer portal routes.
 
 Permissions:

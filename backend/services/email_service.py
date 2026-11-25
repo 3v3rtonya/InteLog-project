@@ -1,4 +1,4 @@
-﻿"""
+"""
 email_service.py - SMTP email sender with background thread dispatch.
 
 - All sends run in a daemon thread (fire-and-forget) so the API never

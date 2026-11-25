@@ -1,4 +1,4 @@
-﻿"""
+"""
 geofence.py - Supervisor self-service geofence pinning and intern location check.
 
 Each supervisor controls their own office location.

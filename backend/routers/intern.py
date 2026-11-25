@@ -1,4 +1,4 @@
-﻿"""
+"""
 intern.py - Intern logbook routes.
 Uses per-supervisor geofence instead of global site_locations.
 Sends notification to supervisor on log submission.

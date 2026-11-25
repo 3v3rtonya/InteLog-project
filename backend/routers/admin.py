@@ -1,4 +1,4 @@
-﻿"""
+"""
 admin.py - Admin portal routes.
 
 Permissions:

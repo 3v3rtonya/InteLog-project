@@ -1,4 +1,4 @@
-﻿"""
+"""
 config.py - Pydantic Settings loading from .env
 """
 import sys

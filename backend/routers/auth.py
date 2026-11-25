@@ -1,4 +1,4 @@
-﻿"""
+"""
 auth.py - Authentication routes including intern/supervisor signup with
 Student ID auto-linking, profile management, and password change.
 """

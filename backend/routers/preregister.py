@@ -1,4 +1,4 @@
-﻿"""
+"""
 preregister.py  Admin bulk pre-registration of students via CSV upload.
 
 CSV columns (header row required, order flexible):

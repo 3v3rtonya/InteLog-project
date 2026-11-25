@@ -1,4 +1,4 @@
-﻿"""
+"""
 weekly_summary.py - Weekly summary CRUD for interns, with review by supervisors
 and read access for lecturers and admins.
 """

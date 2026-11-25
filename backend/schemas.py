@@ -697,7 +697,7 @@ class WeeklySummaryUpdate(BaseModel):
 class WeeklySummaryReviewRequest(BaseModel):
     feedback: str
     decision: str  # "approved" or "rejected"
-    grade: int     # 0–10 performance grade
+    grade: int     # 0â€“10 performance grade
 
     @field_validator("feedback", mode="before")
     @classmethod

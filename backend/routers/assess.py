@@ -33,7 +33,7 @@ def warmup_model():
     except ImportError:
         return {"status": "unavailable", "message": "ML dependencies not installed. Run: pip install -r backend/requirements-ml.txt"}
     except Exception as e:
-        # Return 200 so start.bat curl check does not fail — the model will
+        # Return 200 so start.bat curl check does not fail â€” the model will
         # simply load lazily on the first real /assess/logbook request.
         return {"status": "degraded", "message": str(e)}
 

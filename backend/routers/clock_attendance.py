@@ -1,4 +1,4 @@
-﻿"""
+"""
 clock_attendance.py - Clock-in / clock-out endpoints for interns.
 
 Rules:

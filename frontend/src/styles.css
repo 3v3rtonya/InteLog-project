@@ -321,7 +321,11 @@ tbody tr:hover { background: var(--table-row-hover); }
 
 /* -- Auth --------------------------------------------------- */
 .auth-page {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   position: relative;
   padding: 16px;
   overflow: hidden;
@@ -348,6 +352,7 @@ tbody tr:hover { background: var(--table-row-hover); }
 .auth-card {
   position: relative;
   z-index: 2;
+  margin: auto;
   background: var(--glass-light);
   backdrop-filter: blur(24px) saturate(200%);
   -webkit-backdrop-filter: blur(24px) saturate(200%);
@@ -719,4 +724,5 @@ tbody tr:hover { background: var(--table-row-hover); }
   .form-action-btns { flex-direction: column; }
   .form-action-btns .btn { width: 100%; justify-content: center; }
 }
+
 
