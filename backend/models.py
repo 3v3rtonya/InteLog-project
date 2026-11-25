@@ -1,4 +1,4 @@
-﻿"""
+"""
 models.py - SQLAlchemy ORM models
 """
 import uuid
@@ -17,7 +17,7 @@ def _now():
     return datetime.now(timezone.utc)
 
 
-# ── Institutions ───────────────────────────────────────────────────────────────
+# -- Institutions ---------------------------------------------------------------
 
 class Institution(Base):
     __tablename__ = "institutions"
@@ -27,7 +27,7 @@ class Institution(Base):
     created_at = Column(DateTime(timezone=True), default=_now)
 
 
-# ── Users ──────────────────────────────────────────────────────────────────────
+# -- Users ----------------------------------------------------------------------
 
 class User(Base):
     __tablename__ = "users"
@@ -50,7 +50,7 @@ class User(Base):
     is_coordinator   = Column(Boolean, default=False, nullable=False)
     institution_id   = Column(UUID(as_uuid=True), ForeignKey("institutions.id", ondelete="SET NULL"), nullable=True)
 
-    # ── Attachment period (interns only) ─────────────────────────
+    # -- Attachment period (interns only) -------------------------
     attachment_start   = Column(Date, nullable=True)
     attachment_end     = Column(Date, nullable=True)
     date_change_count  = Column(Integer, nullable=False, default=0)  # max 3 self-changes
@@ -78,7 +78,7 @@ class User(Base):
                                       foreign_keys="WeeklySummary.intern_id", cascade="all, delete-orphan")
 
 
-# ── Lecturer ↔ Intern assignment ───────────────────────────────────────────────
+# -- Lecturer ? Intern assignment -----------------------------------------------
 
 class LecturerInternAssignment(Base):
     __tablename__ = "lecturer_intern_assignments"
@@ -94,7 +94,7 @@ class LecturerInternAssignment(Base):
     assigned_by_user= relationship("User", foreign_keys=[assigned_by])
 
 
-# ── Logbook ────────────────────────────────────────────────────────────────────
+# -- Logbook --------------------------------------------------------------------
 
 class LogbookEntry(Base):
     __tablename__ = "logbook_entries"
@@ -143,7 +143,7 @@ class LogImage(Base):
     log_entry = relationship("LogbookEntry", back_populates="images")
 
 
-# ── Absence Requests ───────────────────────────────────────────────────────────
+# -- Absence Requests -----------------------------------------------------------
 
 class AbsenceRequest(Base):
     __tablename__ = "absence_requests"
@@ -164,7 +164,7 @@ class AbsenceRequest(Base):
     acknowledged_by_user = relationship("User", foreign_keys=[acknowledged_by])
 
 
-# ── Non-Working Days ───────────────────────────────────────────────────────────
+# -- Non-Working Days -----------------------------------------------------------
 
 class NonWorkingDay(Base):
     __tablename__ = "non_working_days"
@@ -178,7 +178,7 @@ class NonWorkingDay(Base):
     created_at = Column(DateTime(timezone=True), default=_now)
 
 
-# ── Geofence ───────────────────────────────────────────────────────────────────
+# -- Geofence -------------------------------------------------------------------
 
 class SupervisorGeofence(Base):
     __tablename__ = "supervisor_geofences"
@@ -210,7 +210,7 @@ class GeofenceRepinLog(Base):
     supervisor = relationship("User", back_populates="geofence_repin_logs")
 
 
-# ── Notifications ──────────────────────────────────────────────────────────────
+# -- Notifications --------------------------------------------------------------
 
 class Notification(Base):
     __tablename__ = "notifications"
@@ -238,7 +238,7 @@ class PasswordResetToken(Base):
     used       = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), default=_now)
 
-# ── Weekly Summary ─────────────────────────────────────────────────────────────
+# -- Weekly Summary -------------------------------------------------------------
 
 class WeeklySummary(Base):
     __tablename__ = "weekly_summaries"
@@ -260,7 +260,7 @@ class WeeklySummary(Base):
     intern     = relationship("User", back_populates="weekly_summaries", foreign_keys=[intern_id])
     supervisor = relationship("User", foreign_keys=[supervisor_id])
 
-# ── Attendance (Clock In/Out) ──────────────────────────────────────────────────
+# -- Attendance (Clock In/Out) --------------------------------------------------
 
 class AttendanceRecord(Base):
     __tablename__ = "attendance_records"
