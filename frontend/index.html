@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
@@ -15,9 +15,11 @@
     <meta name="description" content="InteLog MIS — Intern Management Information System | Dedan Kimathi University of Technology" />
     <meta name="application-name" content="InteLog MIS" />
 
-    <!-- Icons -->
-    <link rel="icon" type="image/png" href="/dekut-logo.png" />
-    <link rel="apple-touch-icon" href="/icon-152x152.png" />
+    <!-- Favicon + iOS home screen icons (uses new InteLog logo) -->
+    <link rel="icon" type="image/png" sizes="32x32"  href="/icon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+    <link rel="apple-touch-icon"              href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-152x152.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="/icon-192x192.png" />
 
     <!-- PWA Manifest -->
@@ -29,7 +31,6 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Register service worker for PWA support
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js', { scope: '/' })
