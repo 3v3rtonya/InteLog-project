@@ -1,7 +1,7 @@
 {
-  "name": "InteLog MIS — DeKUT",
-  "short_name": "InteLog",
-  "description": "Intern Management Information System — Dedan Kimathi University of Technology",
+  "name": "DeKUT InteLog MIS",
+  "short_name": "DeKUT InteLog",
+  "description": "Intern Management Information System - Dedan Kimathi University of Technology",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

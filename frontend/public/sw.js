@@ -1,12 +1,12 @@
 /* ============================================================
-   InteLog MIS Ã¢â‚¬â€ Service Worker
+   InteLog MIS ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Service Worker
    Cache strategy:
    - App shell (HTML, CSS, JS, icons) ? Cache First
    - API calls (/api/*) ? Network First, fallback to cache
    - Uploads (/api/uploads/*) ? Cache First
    ============================================================ */
 
-const CACHE_VERSION = 'intelog-v2'
+const CACHE_VERSION = 'intelog-v3'
 const STATIC_CACHE  = `${CACHE_VERSION}-static`
 const API_CACHE     = `${CACHE_VERSION}-api`
 
@@ -26,7 +26,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then(cache => {
       return cache.addAll(STATIC_ASSETS).catch(() => {
-        // Non-fatal Ã¢â‚¬â€ some assets may not exist yet during first install
+        // Non-fatal ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â some assets may not exist yet during first install
       })
     }).then(() => self.skipWaiting())
   )
